@@ -1,0 +1,17 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}l c c c r@{}}
+    \toprule
+    \makecell[l]{Cấu hình} & \makecell{Epoch\\tốt nhất} & \makecell{Macro-F1 val\\tại epoch tốt nhất} & \makecell{Macro-F1 val\\tại epoch cuối} & \makecell[r]{Khoảng\\cách} \\
+    \midrule
+    \cfg{E1} & 90,8 & 0,9521 & 0,9507 & +0,0014 \\
+    \cfg{E2-L} & 85,3 & 0,9542 & 0,9524 & +0,0018 \\
+    \cfg{E2} & 85,0 & 0,9644 & 0,9631 & +0,0014 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Hành vi hội tụ. \enquote{Khoảng cách} là Macro-F1 validation tại epoch tốt nhất trừ giá trị tại epoch cuối; giá trị dương nghĩa là mô hình bắt đầu suy giảm trên validation trước khi kết thúc 100 epoch. Vì không dùng Early Stopping, quá trình vẫn chạy tới epoch 100 như thiết kế.}
+  \label{tab:convergence}
+\end{table}

@@ -1,0 +1,161 @@
+% =====================================================================
+\section{Phương pháp đề xuất}
+\label{sec:method}
+% =====================================================================
+
+\subsection{Kiến trúc học đa nhiệm}
+\label{sec:arch}
+
+Backbone là ResNet-18 \textbf{khởi tạo ngẫu nhiên}, không dùng trọng số tiền huấn luyện. Việc
+không dùng tiền huấn luyện là lựa chọn có chủ đích: nếu encoder đã được huấn luyện trước trên
+ImageNet, hiệu ứng của nhiệm vụ phụ sẽ bị trộn lẫn với chất lượng đặc trưng sẵn có và không
+còn đo được đóng góp của tín hiệu tự giám sát~\cite{he2016resnet,pytorch_resnet}.
+
+Điều chỉnh cho ảnh $32 \times 32$:
+\begin{itemize}[leftmargin=1.2cm,itemsep=2pt]
+  \item thay convolution đầu bằng \code{Conv2d(3, 64, kernel\_size=3, stride=1, padding=1, bias=False)};
+  \item bỏ lớp MaxPool đầu mạng, vì sau hai lần giảm độ phân giải $32 \to 8$ thì thông tin
+        không gian còn quá ít;
+  \item giữ bốn nhóm residual block, mỗi nhóm hai BasicBlock (cấu hình ResNet-18 chuẩn).
+\end{itemize}
+
+\input{generated/tab_arch}
+
+\paragraph{Ký hiệu.}
+$\enc$ là encoder dùng chung; $\gsup$ và $\grot$ là hai head tương ứng; $\norm$ là bước chuyển
+tensor và chuẩn hóa; $R_k$ là phép xoay $90k$ độ. Hai đầu ra được viết:
+
+\begin{align}
+  a_{\mathrm{sup}} &= \gsup\bigl(\enc(t_{\mathrm{sup}}(x))\bigr) \in \mathbb{R}^2, \label{eq:asup}\\
+  a_{\mathrm{rot}} &= \grot\bigl(\enc(\norm(R_k(x)))\bigr) \in \mathbb{R}^4, \label{eq:arot}
+\end{align}
+
+trong đó $t_{\mathrm{sup}}(\cdot)$ là chuỗi augmentation của nhánh phân loại. Việc viết tách
+$t_{\mathrm{sup}}$ và $\norm \circ R_k$ nhấn mạnh rằng \textbf{hai nhánh nhận các view khác
+nhau}; ta không giả định tồn tại một vector đặc trưng duy nhất dùng cho cả ảnh chuẩn và ảnh đã
+xoay.
+
+\paragraph{Cách ghép minibatch.}
+Khi huấn luyện M8, hai minibatch được ghép theo chiều batch trước khi qua encoder:
+$[\,B_L;\, B_R\,] \in \mathbb{R}^{(b_L + b_R) \times 3 \times 32 \times 32}$, sau đó tách đặc
+trưng trở lại đúng head. \textbf{Các lớp BatchNorm dùng chung}, do đó mọi thay đổi về thành phần
+của batch đều làm thay đổi thống kê chạy của toàn mạng~\cite{ioffe2015batchnorm}. Đây là cơ sở
+cho một giới hạn quan trọng được nêu ở \secref{sec:exp-compare}: không thể diễn giải so sánh
+\cfg{E2-L}/\cfg{E1} như một phép tách hoàn toàn riêng tác dụng của nhãn góc xoay khỏi mọi thay
+đổi về mặt tính toán.
+
+\paragraph{Suy luận.}
+Khi suy luận, chỉ chạy encoder và Superclass Head; chọn lớp bằng $\arg\max$ của hai logits.
+Rotation Head không cần thiết và không được tính vào chi phí suy luận. Hệ quả kiến trúc: mô
+hình suy luận của \cfg{E2} có \emph{đúng cùng} kiến trúc với \cfg{E1}, nên không thể kỳ vọng
+giảm độ phức tạp kiến trúc chỉ nhờ bỏ head phụ.
+
+\subsection{Hàm mất mát và cách sử dụng dữ liệu}
+\label{sec:loss}
+
+Với $B_L$ là minibatch có nhãn, $B_R$ là minibatch cho nhiệm vụ xoay, và $b_L$, $b_R$ là số mẫu
+tương ứng, hai mất mát được lấy \textbf{trung bình riêng}:
+
+\begin{align}
+  \Lsup &= \frac{1}{b_L}\sum_{i=1}^{b_L} \mathrm{CE}\bigl(a_{\mathrm{sup},i},\, y_i\bigr),
+  \label{eq:lsup}\\
+  \Lrot &= \frac{1}{b_R}\sum_{j=1}^{b_R} \mathrm{CE}\bigl(a_{\mathrm{rot},j},\, k_j\bigr),
+  \label{eq:lrot}\\
+  L &= \Lsup + \lamrot \Lrot. \label{eq:total}
+\end{align}
+
+$\mathrm{CE}$ là cross-entropy cho nhãn lớp nguyên. Trong PyTorch, logits được truyền trực tiếp
+vào \code{CrossEntropyLoss}, \textbf{không} áp dụng Softmax trước loss; việc áp Softmax hai lần
+là một lỗi phổ biến làm hỏng gradient~\cite{pytorch_ce}. Trong mã nguồn, logits được truyền
+nguyên vẹn vào lớp này.
+
+\paragraph{Phân chia nguồn dữ liệu cho từng mất mát.}
+Chỉ ảnh thuộc $\DL$ đóng góp vào $\Lsup$. Ngược lại, $B_R$ lấy từ $\DL$ hoặc từ $\Dtrain$ tùy
+cấu hình (\tabref{tab:configs}). Chốt $\lamrot = 0{,}5$ cho thí nghiệm chính; các giá trị khác
+chỉ thuộc khảo sát độ nhạy đã khai báo trước.
+
+\begin{keybox}
+\textbf{Vì sao lấy trung bình riêng từng mất mát?} Nếu gộp hai tập mẫu rồi lấy trung bình chung,
+trọng số hiệu dụng của nhánh xoay sẽ phụ thuộc vào tỷ lệ $b_R/b_L$, và như vậy $\lamrot$ mất ý
+nghĩa so sánh giữa các mức nhãn. Lấy trung bình riêng giữ cho $\lamrot$ là một hệ số có thể
+diễn giải được và giữ phép so sánh độ nhạy $\lamrot$ nhất quán.
+\end{keybox}
+
+\subsection{Mở rộng Contrastive Learning và SupCon}
+\label{sec:contrastive}
+
+Nội dung này là \textbf{hướng mở rộng} của đề tài: nó không phải điều kiện hoàn thành phần
+chính và được chạy \emph{sau} khi khối đối chứng \cfg{E1}/\cfg{E2-L}/\cfg{E2} đã hoàn tất.
+Bốn cấu hình \cfg{E3}--\cfg{E6} được triển khai và báo cáo tại \secref{sec:results-ext}.
+
+\paragraph{Contrastive Learning tự giám sát (NT-Xent).}
+Tạo hai view của cùng một ảnh và đưa qua encoder cùng Projection Head; hai view này tạo thành
+positive pair. Có thể dùng ảnh từ $\Dtrain$ vì \textbf{không} cần nhãn siêu lớp. Theo tham chiếu
+SimCLR~\cite{chen2020simclr}, mọi thành phần đều được khóa trước: loss NT-Xent, chuẩn hóa vector
+$L_2$, nhiệt độ $\tau_{\mathrm{NT}}$, phép tăng cường ảnh, kích thước batch và chiều Projection
+Head. Với $2N$ view trong một minibatch và $j(i)$ là view còn lại của cùng ảnh:
+
+\begin{equation}
+  L_{\mathrm{NT\text{-}Xent}}
+  = \frac{1}{2N}\sum_{i=1}^{2N} -\log
+    \frac{\exp\!\bigl(s_{i,j(i)}/\tau_{\mathrm{NT}}\bigr)}
+         {\sum_{k \neq i} \exp\!\bigl(s_{i,k}/\tau_{\mathrm{NT}}\bigr)},
+  \qquad
+  s_{i,k} = \frac{z_i^{\top} z_k}{\lVert z_i\rVert_2 \lVert z_k\rVert_2}.
+  \label{eq:ntxent}
+\end{equation}
+
+\paragraph{Supervised Contrastive Learning (SupCon).}
+Xây dựng positive pair từ \textbf{các view có cùng nhãn siêu lớp đã được cấp cho huấn luyện}.
+Trong đề tài này, SupCon chỉ sử dụng $\DL$; \textbf{không} đọc nhãn thật của $\DU$. SupCon là
+học \emph{có} giám sát, không được gọi là một nhiệm vụ tự giám sát~\cite{khosla2020supcon}. Với
+$A(i) = \{a \neq i : \tilde{y}_a = \tilde{y}_i\}$ là tập positive của view $i$:
+
+\begin{equation}
+  L_{\mathrm{SupCon}}
+  = \sum_{i=1}^{2N} \frac{-1}{|A(i)|}
+    \sum_{a \in A(i)} \log
+    \frac{\exp\!\bigl(s_{i,a}/\tau_{\mathrm{Sup}}\bigr)}
+         {\sum_{k \neq i} \exp\!\bigl(s_{i,k}/\tau_{\mathrm{Sup}}\bigr)}.
+  \label{eq:supcon}
+\end{equation}
+
+\paragraph{Kiến trúc Projection Head.}
+Hai lớp tuyến tính $512 \to 512 \to \dim_{\mathrm{proj}}$ với BatchNorm và ReLU ở lớp ẩn
+(theo SupCon/SimCLR). Head này \textbf{chỉ} tồn tại khi huấn luyện; khi suy luận, mô hình chỉ
+gồm encoder và Superclass Head, nên \emph{số tham số suy luận không thay đổi} so với
+\cfg{E1}/\cfg{E2} (xem \tabref{tab:inference-cost} và \tabref{tab:extension-cost}).
+
+\subsection{Đối chứng bắt buộc}
+\label{sec:baselines}
+
+Ba cấu hình chính được thiết kế để tách bạch hai yếu tố thường bị trộn lẫn: \emph{việc thêm
+nhiệm vụ phụ} và \emph{việc mở rộng nguồn ảnh cho nhiệm vụ phụ}.
+
+\input{generated/tab_configs}
+
+\input{generated/tab_experiment_matrix}
+
+Ba so sánh ghép cặp được dùng để trả lời các câu hỏi đã nêu:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{\cfg{E2-L} so với \cfg{E1}:} tác động của việc bổ sung nhánh rotation khi
+        \emph{không} mở rộng tập ảnh nguồn. Đây là phép so sánh cô lập nhất về mặt dữ liệu,
+        nhưng vẫn còn khác biệt về tính toán.
+  \item \textbf{\cfg{E2} so với \cfg{E2-L}:} ảnh hưởng của việc mở rộng nguồn ảnh cho nhánh phụ
+        (chỉ $\DL$ so với toàn bộ $\Dtrain$). Hai cấu hình này có cùng hàm mục tiêu và cùng số
+        bước cập nhật, chỉ khác nguồn ảnh của $B_R$.
+  \item \textbf{\cfg{E2} so với \cfg{E1}:} hiệu quả tổng thể của M8 trong cùng ngân sách nhãn;
+        đây là so sánh trả lời trực tiếp câu hỏi C1.
+\end{itemize}
+
+Các so sánh được ghép cặp theo lần lặp và tỷ lệ nhãn, tức $\Delta_s = \mathrm{Macro\text{-}F1}_s(\text{M8}) -
+\mathrm{Macro\text{-}F1}_s(\cfg{E1})$ tính riêng cho từng $s$ rồi mới tổng hợp.
+
+\begin{warnbox}
+\textbf{Giới hạn về tính công bằng của phép so sánh.} \cfg{E2-L}/\cfg{E2} vẫn xử lý thêm view và
+làm thay đổi thống kê BatchNorm so với \cfg{E1}. Do đó \textbf{không} diễn giải chúng là phép
+tách hoàn toàn riêng tác dụng của \enquote{nhãn góc xoay} khỏi mọi thay đổi về tính toán.
+Tương tự, \textbf{không} khẳng định so sánh công bằng về FLOPs hoặc thời gian chỉ vì ba cấu hình
+dùng cùng số epoch: số lượt ảnh được xử lý ở mỗi bước cập nhật là khác nhau.
+\end{warnbox}

@@ -1,0 +1,98 @@
+% =====================================================================
+\section{Liên hệ với Edge AI và IoT}
+\label{sec:iot}
+% =====================================================================
+
+\subsection{Vì sao chi phí suy luận mới là chi phí quyết định trên thiết bị biên}
+\label{sec:iot-why}
+
+Trong học đa nhiệm, việc thêm một nhánh phụ làm tăng chi phí \emph{huấn luyện}, nhưng chi phí
+\emph{suy luận} — thứ quyết định trên thiết bị triển khai — có thể hoàn toàn không đổi. Đây là
+điểm quan trọng cho các ứng dụng IoT: mô hình được huấn luyện một lần trên máy chủ nhưng được
+chạy liên tục trên thiết bị. Với cấu hình tại \secref{sec:arch}, mô hình suy luận của \cfg{E1}
+và \cfg{E2} có \emph{đúng cùng} kiến trúc vì Rotation Head không tham gia suy luận. Vì vậy:
+
+\begin{keybox}
+Nhánh phụ không làm mô hình suy luận nhỏ hơn hay lớn hơn. Lợi ích của học đa nhiệm (nếu có)
+phải đến từ \emph{chất lượng đặc trưng}, không từ việc giảm độ phức tạp kiến trúc. Mọi tuyên bố
+về \enquote{tiết kiệm tài nguyên} chỉ nhờ bỏ head phụ là không chính xác về mặt kỹ thuật.
+\end{keybox}
+
+Bảng \ref{tab:inference-cost} cho thấy mức chênh lệch cụ thể: \RParamRotationHead{} tham số của
+Rotation Head tương đương khoảng $0{,}018\,\%$ tổng số tham số huấn luyện — không đáng kể so
+với \RParamInference{} tham số của mô hình suy luận.
+
+\subsection{Đối chiếu với ngân sách tài nguyên của thiết bị IoT}
+\label{sec:iot-budget}
+
+Để đánh giá mức độ phù hợp với thiết bị biên, cần so số tham số đo được với ngân sách bộ nhớ
+flash và RAM thực tế của các lớp thiết bị. Các hướng dẫn benchmark cho thiết bị siêu nhỏ hiện
+dùng ngân sách cỡ vài trăm KiB bộ nhớ cho cả mô hình và trạng thái trung gian, trong khi các mô
+hình tối ưu cho vi điều khiển được thiết kế từ đầu với ràng buộc đó~\cite{banbury2021mlperftiny,lin2019mcunet}.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l r l@{}}
+    \toprule
+    Thành phần & Dung lượng & Ghi chú \\
+    \midrule
+    Trọng số FP32 của mô hình suy luận & \RParamInferenceMiB{} MiB & đo được: \RParamInferenceFileMiB{} MiB \\
+    Trọng số lượng tử hóa INT8 (ước lượng) & $\approx 10{,}65$ MiB & $11.169.858 \times 1$ byte \\
+    Trọng số lượng tử hóa INT4 (ước lượng) & $\approx 5{,}33$ MiB & $11.169.858 \times 0{,}5$ byte \\
+    \midrule
+    Ngân sách flash điển hình của MCU nhỏ & vài trăm KiB & xem \cite{lin2019mcunet} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Đối chiếu dung lượng trọng số của mô hình với ngân sách bộ nhớ của thiết bị biên. Các
+  dòng lượng tử hóa là \emph{ước lượng số học đơn giản} từ số tham số, chưa bao gồm chi phí
+  hiệu chỉnh, activation và bộ nhớ runtime; chúng \textbf{không} phải là kết quả đã đo. Hai dòng
+  cuối chỉ mang tính đối chiếu định cỡ, không phải suy luận về khả năng triển khai.}
+  \label{tab:iot-budget}
+\end{table}
+
+Hệ quả định cỡ: ngay cả ở dạng lượng tử hóa INT8, mô hình này vượt xa ngân sách bộ nhớ của một
+vi điều khiển nhỏ. Với các nền tảng mạnh hơn như vi điều khiển ứng dụng có vài MiB flash, hoặc
+các SoC biên có bộ tăng tốc NPU, mô hình lại nằm trong dải khả thi. Việc rút gọn backbone là
+điều kiện tiên quyết nếu mục tiêu là vi điều khiển lớp nhỏ; các kiến trúc hiệu quả tham số như
+MobileNet cho thấy hướng đi này~\cite{howard2017mobilenets}.
+
+\subsection{Giao thức đo độ trễ và giới hạn kết luận}
+\label{sec:iot-latency}
+
+Độ trễ đo được tại \tabref{tab:latency} có giá trị tham chiếu nội bộ, cần được đọc kèm các điều
+kiện sau:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=3pt]
+  \item Phép đo chỉ tính thời gian tính toán của mô hình. Đọc ảnh, tiền xử lý và truyền dữ liệu
+        được đo riêng (\RPreprocessMs{}~ms/ảnh trên CPU) và đây là thành phần thường chiếm phần
+        lớn thời gian trong một pipeline thực tế.
+  \item Trên GPU, p95 cao hơn trung vị đáng kể; phân bố độ trễ không đối xứng nên không nên
+        dùng duy nhất giá trị trung bình để thiết kế hệ thống.
+  \item Số luồng CPU được ghim cố định (\RLatThreads{} luồng) để các phép so sánh có ý nghĩa.
+        Thay đổi số luồng sẽ thay đổi kết quả và cần được khai báo lại.
+\end{itemize}
+
+\begin{limbox}
+\textbf{Giới hạn kết luận được nêu rõ.} Kết quả trên CPU của máy tính dùng để huấn luyện
+\emph{không} phải là benchmark trên thiết bị đích. Chỉ có thể kết luận về \enquote{khả năng
+triển khai thiết bị biên} khi đã đo trên chính thiết bị đó, với runtime và mức lượng tử hóa
+thực tế. Báo cáo này \textbf{không} suy diễn từ số tham số hay độ trễ trên máy tính thành kết
+luận về vi điều khiển.
+\end{limbox}
+
+\subsection{Hàm ý thiết kế cho ứng dụng IoT}
+\label{sec:iot-implications}
+
+Nếu hiệu ứng tích cực của nhiệm vụ phụ được xác nhận ở quy mô lớn hơn, hàm ý thực tiễn cho
+ứng dụng IoT là: \emph{chi phí một lần khi huấn luyện để đổi lấy chất lượng suy luận tốt hơn ở
+cùng kích thước mô hình}. Với các hệ thống thu thập nhãn đắt đỏ (ví dụ cảm biến công nghiệp
+cần chuyên gia gán nhãn), việc tận dụng tín hiệu tự giám sát từ dữ liệu chưa gán nhãn có thể
+rẻ hơn đáng kể so với việc gán nhãn thêm. Ngược lại, nếu hiệu ứng không được xác nhận, kết luận
+hữu ích cũng vẫn có giá trị: nó cho thấy trong điều kiện cụ thể đã khảo sát, chi phí huấn luyện
+tăng thêm \emph{không} đổi lấy chất lượng suy luận tốt hơn.
+
+Một điểm cần nhấn mạnh cho thiết kế hệ thống: \textbf{không có} thay đổi nào về đường suy luận
+giữa \cfg{E1} và \cfg{E2}. Điều này có nghĩa là bất kỳ hạ tầng triển khai nào đã chấp nhận
+\cfg{E1} đều chấp nhận \cfg{E2} mà không cần thay đổi runtime, bộ nhớ hay giao thức. Rủi ro
+triển khai của việc áp dụng học đa nhiệm trong trường hợp này là rất thấp.

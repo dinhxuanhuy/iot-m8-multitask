@@ -1,0 +1,20 @@
+# Chuẩn hóa xuống dòng: file văn bản dùng LF trong git
+* text=auto
+
+# Nhị phân — không đụng tới
+*.ipynb -text diff=jupyter
+*.pdf   -text
+*.png   -text
+*.jpg   -text
+*.jpeg  -text
+*.pt    -text
+*.pth   -text
+*.exe   -text
+*.zip   -text
+
+# Ngôn ngữ để GitHub tô màu / thống kê đúng
+*.py    text
+*.tex   text
+*.md    text
+*.json  text
+*.yml   text

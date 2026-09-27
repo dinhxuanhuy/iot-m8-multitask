@@ -1,0 +1,92 @@
+% =====================================================================
+\section{Kết luận}
+\label{sec:conclusion}
+% =====================================================================
+
+\subsection{Kết luận chính}
+\label{sec:concl-main}
+
+Báo cáo đã xây dựng và chạy một quy trình thực nghiệm đóng kín cho đề tài M8: một phép chia
+benchmark được đóng băng với các tập nhãn lồng nhau, một mô hình ResNet-18 hai đầu ra cho ảnh
+$32 \times 32$, ba cấu hình đối chứng có thể tách bạch phần nào hai yếu tố \enquote{thêm nhiệm
+vụ phụ} và \enquote{mở rộng nguồn ảnh cho nhiệm vụ phụ}, cùng các phép đo chi phí huấn luyện và
+suy luận.
+
+Khối thực nghiệm chính hoàn thành \RRuns{} lượt chạy trong \RTotalHours{} giờ. Kết quả trên tập
+test cho thấy \RFindingSentence
+
+Về mặt chi phí, mô hình suy luận của hai cấu hình \cfg{E1} và \cfg{E2} là \emph{giống nhau} với
+\RParamInference{} tham số (\RParamInferenceMiB{} MiB ở FP32); Rotation Head chỉ thêm
+\RParamRotationHead{} tham số trong giai đoạn huấn luyện. Do đó mọi khác biệt về chất lượng
+phân loại là do chất lượng đặc trưng học được, không do thay đổi kiến trúc suy luận.
+
+\subsection{Kết luận về phần mở rộng contrastive}
+\label{sec:concl-ext}
+
+Khối mở rộng \cfg{E3}--\cfg{E6} đã được triển khai đầy đủ theo bảng 5 của đề cương (hai hàm
+mất mát NT-Xent và SupCon, Projection Head chỉ dùng khi huấn luyện) và chạy với siêu tham số
+$\lambda_c$ khóa bằng validation. \RExtensionConclusion
+
+\subsection{Tiêu chí hoàn thành đã đối chiếu}
+\label{sec:concl-criteria}
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}p{7.4cm} p{7.6cm}@{}}
+    \toprule
+    Tiêu chí & Trạng thái đối chiếu \\
+    \midrule
+    Xây dựng đúng quy trình đã khai báo &
+    Đạt. Ba cấu hình, ba mức nhãn, ba lần lặp, 100 epoch, $\lamrot = 0{,}5$; xem
+    \tabref{tab:hyperparams} và \tabref{tab:per-run}. \\
+    \addlinespace
+    Kiểm tra được việc tách dữ liệu và che nhãn &
+    Đạt. \code{results/benchmark\_audit.json} xác nhận không trùng split, các tập $\DL$ lồng
+    nhau, $\DL \cap \DU = \varnothing$ và $\DL \cup \DU$ không giao với $\Dval$ và $\Dtest$. \\
+    \addlinespace
+    Thực hiện đối chứng bắt buộc &
+    Đạt. \cfg{E1}, \cfg{E2-L} và \cfg{E2} đều được chạy đủ ở ba mức nhãn và ba lần lặp. \\
+    \addlinespace
+    Báo cáo trung thực các lượt chạy &
+    Đạt. Mọi lượt đều được đưa vào báo cáo; không loại bỏ lượt nào; kết quả âm được phân tích. \\
+    \addlinespace
+    Cung cấp mã nguồn tái lập &
+    Đạt. Xem \secref{sec:appendix-repro}. \\
+    \addlinespace
+    Mở rộng contrastive (tùy chọn) &
+    Đạt. \cfg{E3}--\cfg{E6} triển khai đủ và có kết quả; xem \secref{sec:results-ext}. \\
+    \bottomrule
+  \end{tabular}
+  \caption{Đối chiếu tiêu chí hoàn thành của đề cương với trạng thái thực tế của báo cáo.}
+  \label{tab:completion}
+\end{table}
+
+\subsection{Giới hạn của kết luận}
+\label{sec:concl-limits}
+
+Kết luận của báo cáo chỉ áp dụng cho \emph{phép gộp hai siêu lớp} do đề tài quy ước, các tỷ lệ
+nhãn và giao thức đã khảo sát, và cho kiến trúc cụ thể đã dùng. Cụ thể:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{Không} so sánh trực tiếp Accuracy hai lớp với bảng xếp hạng CIFAR-10 mười lớp.
+  \item \textbf{Không} khẳng định đặc trưng học được tổng quát tốt hơn các phương pháp học tự
+        giám sát khác, vì không có thực nghiệm đối chứng với chúng.
+  \item \textbf{Không} khẳng định thuật toán là mới: đóng góp là một quy trình đánh giá có thể
+        tái lập, không phải một kiến trúc.
+  \item \textbf{Không} khẳng định tối ưu năng lượng: không có phép đo năng lượng nào được thực
+        hiện.
+  \item \textbf{Không} khẳng định đã xây dựng hệ thống IoT hoàn chỉnh: không có thử nghiệm nào
+        trên thiết bị IoT thật.
+  \item Ba lần lặp chỉ cho bằng chứng ban đầu về độ ổn định; không có kết luận nào về ý nghĩa
+        thống kê được đưa ra.
+\end{itemize}
+
+\subsection{Hướng phát triển}
+\label{sec:concl-future}
+
+Ngắn hạn, ưu tiên tăng số lần lặp ở mức $10\,\%$ nhãn và triển khai khảo sát $\lamrot$ đã khai
+báo. Trung hạn, việc tách thống kê BatchNorm theo nhánh sẽ cho phép quy kết hiệu ứng rõ ràng
+hơn. Dài hạn, nếu mục tiêu là thiết bị biên, cần thay backbone bằng một kiến trúc hiệu quả tham
+số và thực hiện lượng tử hóa có hiệu chỉnh, sau đó đo lại độ trễ và độ chính xác trên thiết bị
+đích thay vì trên máy tính.

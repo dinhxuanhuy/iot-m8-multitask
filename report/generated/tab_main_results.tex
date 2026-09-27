@@ -1,0 +1,20 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{4.5pt}
+  \begin{tabular}{@{}l r r r r r r r r r@{}}
+    \toprule
+    \multirow{2}{*}{\makecell[l]{Cấu hình}} & \multicolumn{3}{c}{10\,\% nhãn} & \multicolumn{3}{c}{20\,\% nhãn} & \multicolumn{3}{c}{50\,\% nhãn} \\
+    \cmidrule(lr){2-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+     & Macro-F1 & Acc. & $\Delta$ & Macro-F1 & Acc. & $\Delta$ & Macro-F1 & Acc. & $\Delta$ \\
+
+    \midrule
+    \cfg{E1} & 0,9319 & 0,9349 & --- & 0,9497 & 0,9517 & --- & 0,9690 & 0,9702 & --- \\
+    \cfg{E2-L} & 0,9313 & 0,9340 & $$-$0,06$ & 0,9505 & 0,9524 & $+0,08$ & 0,9745 & 0,9755 & $+0,55$ \\
+    \cfg{E2} & 0,9470 & 0,9492 & $+1,51$ & 0,9631 & 0,9645 & $+1,34$ & 0,9777 & 0,9786 & $+0,88$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Kết quả trên $\Dtest$: Macro-F1 và Accuracy (\enquote{Acc.}) là trung bình qua ba lần lặp. $\Delta$ là chênh lệch Macro-F1 trung bình so với \cfg{E1} ở cùng mức nhãn, tính bằng điểm phần trăm; giá trị dương nghĩa là cấu hình đa nhiệm tốt hơn baseline. Độ lệch chuẩn qua ba lần lặp được báo cáo ở \tabref{tab:main-std}.}
+  \label{tab:main-results}
+\end{table}

@@ -1,0 +1,33 @@
+{
+  "note": "Thời gian dựng view xoay trên CPU (không tính forward/backward); mỗi epoch của nhánh phụ cần đúng số view bằng kích thước tập nguồn.",
+  "batch_size": 128,
+  "rows": [
+    {
+      "label_pct": 10,
+      "dl_images": 4500,
+      "train_images": 45000,
+      "seconds_per_epoch_rotation_from_dl": 1.200667000026442,
+      "seconds_per_epoch_rotation_from_train": 13.196227499283852,
+      "ratio": 10.990747225494857,
+      "seconds_per_view": 0.0002932494999840856
+    },
+    {
+      "label_pct": 20,
+      "dl_images": 9000,
+      "train_images": 45000,
+      "seconds_per_epoch_rotation_from_dl": 2.7189534000353888,
+      "seconds_per_epoch_rotation_from_train": 13.704950248938985,
+      "ratio": 5.040524140193284,
+      "seconds_per_view": 0.0003045544499764219
+    },
+    {
+      "label_pct": 50,
+      "dl_images": 22500,
+      "train_images": 45000,
+      "seconds_per_epoch_rotation_from_dl": 6.849568499950692,
+      "seconds_per_epoch_rotation_from_train": 13.636638000025414,
+      "ratio": 1.9908754836342728,
+      "seconds_per_view": 0.00030303640000056475
+    }
+  ]
+}

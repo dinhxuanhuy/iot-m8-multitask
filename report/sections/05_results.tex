@@ -1,0 +1,112 @@
+% =====================================================================
+\section{Kết quả thực nghiệm}
+\label{sec:results}
+% =====================================================================
+
+Trong phần này, mọi giá trị số đều được đọc trực tiếp từ các tệp
+\code{results/checkpoints/*.json} do quá trình huấn luyện sinh ra. Không có giá trị nào được
+nhập bằng tay.
+
+\subsection{Khối thực nghiệm chính}
+\label{sec:results-main}
+
+Khối thực nghiệm hoàn thành \RRuns{} lượt huấn luyện ($3$ cấu hình $\times$ $3$ mức nhãn
+$\times$ $3$ lần lặp), tổng thời gian huấn luyện \RTotalHours{} giờ trên
+\REnvGpu{}. Chi tiết từng lượt được liệt kê ở \tabref{tab:per-run}; bảng tổng hợp kết quả trên
+tập test là \tabref{tab:main-results}.
+
+\input{generated/tab_main_results}
+
+\input{generated/tab_main_std}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../results/figures/fig02_macro_f1_by_budget.png}
+  \caption{Macro-F1 trên $\Dtest$ theo ngân sách nhãn cho ba cấu hình. Cột là trung bình qua ba
+  lần lặp, thanh sai số là một độ lệch chuẩn mẫu. Đường chấm ngang ở $0{,}60$ đánh dấu mức
+  Accuracy của bộ phân loại luôn đoán \enquote{Animal}; mọi cấu hình đều vượt mức này rõ rệt.}
+  \label{fig:macro-f1}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../results/figures/fig01_learning_curves_L10.png}
+  \caption{Đường học tại mức $10\,\%$ nhãn, trung bình qua ba lần lặp. (a)~Loss huấn luyện
+  gồm cả hai nhánh; (b)~loss phân loại trên validation; (c)~Macro-F1 validation. Ở cấu hình
+  \cfg{E1} nhánh phụ không tồn tại nên $L_{\mathrm{rot}}$ không được định nghĩa.}
+  \label{fig:learning-curves}
+\end{figure}
+
+\subsection{Chênh lệch ghép cặp}
+\label{sec:results-delta}
+
+Vì ba lần lặp tương ứng với ba tập con nhãn khác nhau, phép so sánh có ý nghĩa nhất là so sánh
+\emph{ghép cặp}: tính $\Delta_s$ cho từng lần lặp rồi mới tổng hợp, thay vì so sánh hai trung
+bình độc lập. \tabref{tab:main-results} đã ghi giá trị trung bình của $\Delta$; hình
+\ref{fig:paired-delta} cho thấy phân bố của $\Delta_s$ theo từng lần lặp, nhờ đó có thể thấy
+mức độ nhất quán của hiệu ứng.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{../results/figures/fig03_paired_delta.png}
+  \caption{Chênh lệch ghép cặp $\Delta_s$ so với \cfg{E1} ở cùng mức nhãn, tính bằng điểm phần
+  trăm Macro-F1 trên $\Dtest$. Mỗi điểm là một lần lặp; vạch ngang là trung bình của ba lần
+  lặp. Giá trị dương nghĩa là cấu hình đa nhiệm tốt hơn baseline.}
+  \label{fig:paired-delta}
+\end{figure}
+
+\subsection{Hành vi hội tụ}
+\label{sec:results-convergence}
+
+Vì bảng kết quả chính không dùng Early Stopping, cần kiểm tra xem việc chạy đủ 100 epoch có dẫn
+tới quá khớp lâu dài trên validation hay không. \tabref{tab:convergence} trình bày thời điểm đạt
+checkpoint tốt nhất và mức suy giảm về cuối quá trình.
+
+\input{generated/tab_convergence}
+
+\subsection{Chỉ số từng lớp và phân tích lỗi}
+\label{sec:results-perclass}
+
+\input{generated/tab_per_class}
+
+\input{generated/tab_per_class_50}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../results/figures/fig04_confusion_L10.png}
+  \caption{Ma trận nhầm lẫn trên $\Dtest$ tại mức $10\,\%$ nhãn, gộp ba lần lặp (tổng 30.000
+  dự đoán cho mỗi cấu hình). Ô ghi số lượng tuyệt đối và tỷ lệ theo hàng. Ma trận cho thấy
+  phần lớn sai số tập trung ở lớp Vehicle bị dự đoán thành Animal.}
+  \label{fig:confusion}
+\end{figure}
+
+\subsection{Chi phí huấn luyện và suy luận}
+\label{sec:results-cost}
+
+\input{generated/tab_training_cost}
+
+\input{generated/tab_inference_cost}
+
+\paragraph{Vì sao \cfg{E2} đắt hơn \cfg{E2-L} — và vì sao khoảng cách đó thu hẹp theo mức nhãn.}
+\tabref{tab:rotation-data-cost} đo riêng chi phí \emph{dựng view} của nhánh phụ. Ở mức
+$10\,\%$ nhãn, nguồn $\Dtrain$ gấp $10$ lần nguồn $\DL$ về số view mỗi epoch; ở mức $50\,\%$
+nhãn, tỷ lệ này chỉ còn $2$ lần. Đây là lý do định lượng cho việc \cfg{E2} đắt hơn \cfg{E2-L}
+rõ rệt khi ít nhãn.
+
+\input{generated/tab_rotation_data_cost}
+
+\input{generated/tab_latency}
+
+\paragraph{Đọc các số liệu chi phí.}
+Độ trễ trung bình \RLatMeanCpu{}~ms/ảnh trên CPU (ghim \RLatThreads{} luồng) và
+\RLatMeanGpu{}~ms/ảnh trên \REnvGpu{} ở chế độ đo đã đồng bộ CUDA. Con số p95 trên GPU
+(\RLatPNinetyFiveGpu{}~ms) cao hơn trung vị (\RLatMedianGpu{}~ms) cho thấy phân bố thời gian không đối
+xứng: một số lượt đo bị chi phối bởi chi phí phát lệnh và đồng bộ chứ không phải bởi phép tính
+thực sự của mạng trên tensor nhỏ $1 \times 3 \times 32 \times 32$. Thời gian đọc ảnh và tiền xử
+lý trên CPU được đo riêng và có giá trị \RPreprocessMs{}~ms/ảnh, tức cùng bậc độ lớn với thời
+gian suy luận GPU; đây là yếu tố thường bị bỏ qua khi chỉ báo cáo \enquote{độ trễ mô hình}.
+
+\paragraph{So sánh chi phí học giữa ba cấu hình.}
+\tabref{tab:training-cost} cho thấy \cfg{E1} rẻ nhất, \cfg{E2-L} và \cfg{E2} đắt hơn do phải
+xử lý thêm một minibatch ở mỗi bước cập nhật. Cần lưu ý rằng mức tăng này không tỷ lệ với số
+epoch (cả ba cấu hình đều 100 epoch) mà tỷ lệ với số lượt ảnh được xử lý.

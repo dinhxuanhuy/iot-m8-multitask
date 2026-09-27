@@ -1,0 +1,16 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l l l l@{}}
+    \toprule
+    ID & Cấu hình & Ảnh cho phân loại & Ảnh cho nhiệm vụ xoay \\
+    \midrule
+    \cfg{E1}   & Baseline chỉ học siêu lớp & $\DL$ & Không có \\
+    \cfg{E2-L} & Thêm nhánh xoay, cùng tập nguồn & $\DL$ & Chỉ $\DL$ \\
+    \cfg{E2}   & Thêm nhánh xoay, mở rộng nguồn ảnh & $\DL$ & $\Dtrain = \DL \cup \DU$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Ba cấu hình chính. \cfg{E1} và \cfg{E2} là cặp đối chứng chính; \cfg{E2-L} tách riêng tác dụng của việc mở rộng nguồn ảnh cho nhánh phụ.}
+  \label{tab:configs}
+\end{table}

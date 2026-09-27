@@ -1,0 +1,17 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l c c c c c@{}}
+    \toprule
+    Cấu hình & $\lambda_c = 0,05$ & $\lambda_c = 0,10$ & $\lambda_c = 0,25$ & $\lambda_c = 0,50$ & $\lambda_c = 1,00$ \\
+    \midrule
+    \cfg{E4} & 0,9266 & 0,9354 & 0,9352 & 0,9425 & 0,9454 \\
+    \cfg{E6} & 0,9391 & 0,9418 & 0,9496 & 0,9457 & 0,9468 \\
+    \midrule
+    \textit{được khóa} &  &  &  &  & $\bullet$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Khảo sát $\lambda_c$ bằng \textbf{Macro-F1 validation} với 40 epoch, mức 10\,\% nhãn, seed 42. Tập test \textbf{không} được đánh giá trong bước này. Quy tắc khóa được khai báo trước: chọn \emph{một} $\lambda_c$ dùng chung cho mọi cấu hình mở rộng sao cho trung bình Macro-F1 validation qua hai cấu hình khảo sát là lớn nhất; giá trị được chọn là 1,00 (trung bình 0,9461).}
+  \label{tab:lambda-sweep}
+\end{table}

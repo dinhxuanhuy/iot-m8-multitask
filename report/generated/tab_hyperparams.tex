@@ -1,0 +1,27 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l l@{}}
+    \toprule
+    Thành phần & Thiết lập cho thí nghiệm chính \\
+    \midrule
+    Optimizer & AdamW \\
+    Learning rate & $3 \times 10^{-4}$ \\
+    Weight decay & $10^{-4}$ \\
+    Betas & $(0{,}9;\ 0{,}999)$ \\
+    Eps & $10^{-8}$ \\
+    Kích thước minibatch $B_L$ & tối đa 128 ảnh \\
+    Kích thước minibatch $B_R$ & bằng $B_L$ tại mỗi bước \\
+    Ngân sách học & 100 epoch ($1$ epoch $=$ một lượt duyệt $\DL$) \\
+    Scheduler & CosineAnnealingLR, $T_{\max}=100$, $\eta_{\min}=0$ \\
+    Hệ số $\lamrot$ & $0{,}5$ cho thí nghiệm chính \\
+    Chọn checkpoint & Macro-F1 validation cao nhất; hòa thì loss thấp hơn, rồi epoch sớm hơn \\
+    Early stopping & Không dùng trong bảng kết quả chính \\
+    Seed & chia split 2026; lần lặp 42, 43, 44 \\
+    Chuẩn hóa & mean $=$ std $= (0{,}5;\ 0{,}5;\ 0{,}5)$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Cấu hình huấn luyện dùng chung cho cả ba cấu hình. Ba cấu hình ghép cặp dùng cùng trọng số khởi tạo của encoder và Superclass Head.}
+  \label{tab:hyperparams}
+\end{table}

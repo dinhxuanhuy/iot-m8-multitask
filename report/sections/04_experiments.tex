@@ -1,0 +1,179 @@
+% =====================================================================
+\section{Thiết kế thực nghiệm và chỉ số}
+\label{sec:experiments}
+% =====================================================================
+
+\subsection{Môi trường thực nghiệm}
+\label{sec:env}
+
+Toàn bộ thí nghiệm được chạy trong một môi trường ảo Python tách biệt nhằm bảo đảm khả năng
+tái lập. Thông tin môi trường dưới đây được đọc trực tiếp từ chính phiên bản phần mềm đã dùng
+để huấn luyện và đo thời gian, không suy ra từ phiên bản của trang tài liệu.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l l@{}}
+    \toprule
+    Thành phần & Giá trị thực tế \\
+    \midrule
+    Python & \REnvPython \\
+    PyTorch & \REnvTorch \\
+    TorchVision & \REnvTorchvision \\
+    Bản dựng CUDA & \REnvCudaBuild \\
+    GPU & \REnvGpu \\
+    VRAM & \REnvVram{} GiB \\
+    CPU & \REnvCpu \\
+    Số luồng CPU & \REnvCores \\
+    RAM & \REnvRam{} GiB \\
+    \bottomrule
+  \end{tabular}
+  \caption{Môi trường thực nghiệm được ghi lại tự động vào \code{results/environment.json} và
+  \code{results/self\_test.json}. Số luồng CPU được ghim bằng \code{torch.set\_num\_threads}
+  trước các phép đo độ trễ.}
+  \label{tab:env}
+\end{table}
+
+\paragraph{Tạo môi trường.}
+\begin{lstlisting}[language=bash,caption={Cài đặt môi trường ảo và các gói phụ thuộc.},label={lst:setup}]
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install --index-url https://download.pytorch.org/whl/cu128 `
+    torch==2.11.0 torchvision==0.26.0
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+\end{lstlisting}
+
+\subsection{Cấu hình huấn luyện}
+\label{sec:train-config}
+
+Để thống nhất số bước cập nhật có giám sát giữa các cấu hình, bảng kết quả chính
+\textbf{không dùng Early Stopping}. Cả ba cấu hình chạy đúng 100 epoch và đều được phép chọn
+checkpoint bằng cùng một tiêu chí validation. Early Stopping với \code{patience=10} của bản
+đề cương ban đầu chỉ có thể dùng cho các thử nghiệm thăm dò và phải được ghi rõ; nó
+\textbf{không} được trộn vào bảng so sánh chính vì sẽ tạo ra số epoch khác nhau giữa các cấu
+hình.
+
+\input{generated/tab_hyperparams}
+
+\paragraph{Một epoch được định nghĩa thế nào.}
+Một epoch là \emph{một lượt duyệt toàn bộ $\DL$}, không phải một lượt duyệt $\Dtrain$. Nhờ định
+nghĩa này, ba mức nhãn có số epoch giống nhau và số bước cập nhật có giám sát tỷ lệ với
+$|\DL|$. Minibatch cuối nhỏ hơn 128 được \emph{giữ lại} chứ không bỏ mẫu, nên không có ảnh nào
+bị loại khỏi huấn luyện.
+
+\paragraph{Chọn checkpoint.} Tiêu chí là Macro-F1 validation cao nhất. Khi hai epoch có cùng
+Macro-F1 (trong sai số $10^{-12}$), ưu tiên loss phân loại validation thấp hơn; nếu vẫn bằng
+nhau, chọn epoch sớm hơn. Tập test không tham gia vào bước này dưới bất kỳ hình thức nào.
+
+\subsection{Quy trình và nguyên tắc so sánh}
+\label{sec:exp-compare}
+
+Trong mỗi epoch, duyệt $\DL$ một lần với \emph{cùng chuỗi minibatch có giám sát} cho các cấu
+hình ghép cặp: cùng seed cho \code{DataLoader}, cùng thứ tự mẫu, cùng phép augmentation. Với mỗi
+bước của M8, lấy $B_R$ ngẫu nhiên từ nguồn ảnh quy định tại \tabref{tab:configs}; dùng một bộ
+sinh số ngẫu nhiên \textbf{độc lập} để việc lấy ảnh và góc xoay không làm thay đổi augmentation
+của nhánh phân loại. Sau đó tính tổng loss và thực hiện một bước optimizer.
+
+\begin{keybox}
+\textbf{Vì sao cần bộ sinh số ngẫu nhiên độc lập?} Nếu nhánh phụ dùng chung luồng RNG với nhánh
+chính, việc thêm nhánh phụ sẽ \emph{dịch chuyển} chuỗi số ngẫu nhiên của nhánh chính. Khi đó
+hai cấu hình ghép cặp sẽ thấy các phép augmentation khác nhau, và chênh lệch $\Delta_s$ trở
+thành nhiễu ngẫu nhiên thay vì tín hiệu cần đo.
+\end{keybox}
+
+\paragraph{\cfg{E1} không chạy nhánh rotation, kể cả forward.}
+Đặt $\lamrot = 0$ nhưng vẫn đưa ảnh xoay qua BatchNorm \textbf{không} được xem là baseline
+\cfg{E1}, vì thống kê chạy của mạng vẫn có thể bị thay đổi: các lớp BatchNorm cập nhật
+running mean và running variance ngay cả khi gradient của nhánh đó bị nhân với $0$. Trong mã
+nguồn, \cfg{E1} được khởi tạo \emph{không có} Rotation Head và vòng huấn luyện bỏ hoàn toàn
+nhánh phụ.
+
+\paragraph{Không dùng nhãn của $\DU$.}
+Với mọi cấu hình, nhãn của $\DU$ không được dùng để phân tầng minibatch huấn luyện, không được
+dùng để xây dựng mục tiêu học, và không được dùng cho bất kỳ quyết định thiết kế nào.
+
+\paragraph{Quy mô khối thực nghiệm.}
+Khối chính gồm $3 \text{ cấu hình} \times 3 \text{ mức nhãn} \times 3 \text{ lần lặp} =
+\RRuns$ lượt huấn luyện. Ba lần lặp thay đổi \emph{cả} tập con có nhãn \emph{lẫn} ngẫu nhiên
+huấn luyện (khởi tạo, thứ tự dữ liệu, augmentation), trong khi phép chia
+train/validation/test được cố định. Đây \textbf{không} phải cross-validation: cùng một tập
+validation được dùng cho mọi lần lặp, nên ba lần lặp chỉ đo độ ổn định trước hai nguồn ngẫu
+nhiên chứ không ước lượng được phương sai do chính phép chia dữ liệu gây ra.
+
+\paragraph{Khảo sát tùy chọn.} $\lamrot \in \{0{,}1;\ 0{,}25;\ 0{,}5;\ 1{,}0\}$ tại mức
+$10\,\%$ nhãn, được ưu tiên trước các mở rộng E3--E6. Giữ $\lamrot = 0{,}5$ cho so sánh chính.
+Không được lựa chọn $\lam$ hay cấu hình dựa trên kết quả test. Nếu tài nguyên không đủ, phải
+điều chỉnh ngân sách chung và ghi nhận \emph{trước khi} mở kết quả test.
+
+\paragraph{Quy trình khóa siêu tham số của phần mở rộng.}
+Khối mở rộng contrastive \cfg{E3}--\cfg{E6} có thêm ba siêu tham số phải khóa trước khi đánh giá
+test: nhiệt độ SupCon ($0{,}1$), nhiệt độ NT-Xent ($0{,}2$) và hệ số $\lambda_c$. Hai nhiệt độ và
+chiều Projection Head ($128$) được chốt theo giá trị chuẩn của tài liệu
+gốc~\cite{chen2020simclr,khosla2020supcon}; riêng $\lambda_c$ được chọn bằng \textbf{Macro-F1
+validation} qua một script \emph{không có} bước đánh giá test (\secref{sec:results-ext-lambda}).
+Quy tắc chọn được khai báo trước khi chạy để tránh điều chỉnh giao thức sau khi đã thấy kết quả.
+
+\subsection{Chỉ số và cách báo cáo}
+\label{sec:metrics}
+
+Chỉ số chính là \textbf{Macro-F1} của Animal và Vehicle. Báo cáo thêm Accuracy,
+precision/recall/F1 từng lớp và ma trận nhầm lẫn trên toàn bộ 10.000 ảnh test. Mỗi ảnh chỉ nhận
+một dự đoán của nhánh siêu lớp; \textbf{không} dùng test-time augmentation trong thí nghiệm
+chính.
+
+Các chỉ số được định nghĩa như sau:
+
+\begin{align}
+  \mathrm{Accuracy} &= \frac{1}{N}\sum_{i=1}^{N} \mathbb{1}\!\left[\hat{y}_i = y_i\right],
+  \label{eq:acc}\\
+  P_c &= \frac{\mathrm{TP}_c}{\mathrm{TP}_c + \mathrm{FP}_c}, \qquad
+  R_c = \frac{\mathrm{TP}_c}{\mathrm{TP}_c + \mathrm{FN}_c}, \label{eq:pr}\\
+  \mathrm{F1}_c &= \frac{2 P_c R_c}{P_c + R_c}, \qquad
+  \mathrm{Macro\text{-}F1} = \frac{\mathrm{F1}_{\mathrm{Animal}} + \mathrm{F1}_{\mathrm{Vehicle}}}{2}.
+  \label{eq:macro}
+\end{align}
+
+\paragraph{Quy ước biên.} Nếu mẫu số của precision, recall hoặc F1 bằng $0$, giá trị tương ứng
+được quy ước bằng $0$ và dùng thống nhất cho mọi cấu hình. Chỉ số được tính từ \emph{toàn bộ}
+dự đoán của tập đánh giá; không lấy trung bình không trọng số các F1 của từng minibatch, vì
+làm như vậy sẽ cho trọng số sai cho các minibatch nhỏ ở cuối epoch.
+
+\paragraph{Cách tổng hợp.} Báo cáo trung bình $\pm$ độ lệch chuẩn mẫu qua ba lần lặp và chênh
+lệch ghép cặp $\Delta_s = \mathrm{Macro\text{-}F1}_s(\text{M8}) -
+\mathrm{Macro\text{-}F1}_s(\cfg{E1})$ tính bằng điểm phần trăm. Mức $10\,\%$ là so sánh ưu
+tiên; mức $20\,\%$ và $50\,\%$ dùng để đánh giá xu hướng.
+
+\begin{warnbox}
+\textbf{Giới hạn suy luận thống kê.} Ba lần lặp chỉ cho bằng chứng ban đầu về độ ổn định.
+Với $n=3$ và độ lệch chuẩn quan sát được, khoảng tin cậy rất rộng và không có cơ sở để tuyên
+bố \enquote{có ý nghĩa thống kê} hay \enquote{luôn tốt hơn}. Đặc biệt, \textbf{không} được chọn
+một lần chạy tốt nhất rồi kết luận từ nó: báo cáo dùng trung bình và độ lệch chuẩn qua cả ba
+lần~\cite{bouthillier2021variance}.
+\end{warnbox}
+
+\paragraph{Rotation Accuracy.} Chỉ là chỉ số \emph{chẩn đoán} cho nhánh phụ. Nếu đo trên
+validation, phải đánh giá đủ bốn phép xoay cho mỗi ảnh và ghi rõ giao thức. Độ chính xác cao ở
+nhiệm vụ phụ \textbf{không} thay thế bằng chứng cải thiện Macro-F1 của nhiệm vụ chính; một
+nhiệm vụ phụ được học tốt vẫn hoàn toàn có thể không giúp gì cho nhiệm vụ chính.
+
+\subsection{Chi phí suy luận và giới hạn kết luận về IoT}
+\label{sec:cost-protocol}
+
+\paragraph{Đếm tham số và dung lượng.} Đếm riêng số tham số khi huấn luyện và khi suy luận; đo
+dung lượng tệp chỉ chứa trọng số suy luận, \textbf{không} gộp optimizer state (vì optimizer
+state không tồn tại trên thiết bị triển khai). Với cấu hình tại \secref{sec:arch}, mô hình suy
+luận có \RParamInference{} tham số; Rotation Head thêm \RParamRotationHead{} tham số. Phần tham
+số FP32 của mô hình suy luận tương đương khoảng \RParamInferenceMiB{} MiB, \emph{chưa} gồm
+buffer, activation và bộ nhớ của runtime~\cite{pytorch_resnet}. Đây là thông số kiến trúc, không
+phải kết quả huấn luyện.
+
+\paragraph{Giao thức đo độ trễ.} Đo với batch $=1$, tensor $1 \times 3 \times 32 \times 32$,
+FP32, \code{model.eval()} và \code{torch.inference\_mode()}. Dùng \emph{cùng} máy, cùng runtime
+và cùng số luồng CPU cho mọi cấu hình. Chạy khởi động 50 lượt, sau đó đo tối thiểu 1.000 lượt
+trên cùng các ảnh validation đã tiền xử lý. Nếu đo trên GPU, đồng bộ trước và sau khối tính thời
+gian. Báo cáo mean, median, p95 theo ms/ảnh; lặp ba phiên và lưu log~\cite{pytorch_benchmark}.
+
+\paragraph{Tách riêng các thành phần thời gian.} Phép đo trên chỉ tính thời gian \emph{suy luận
+của mô hình}. Thời gian đọc ảnh, tiền xử lý và truyền dữ liệu phải được đo và báo cáo riêng.
+Hai mô hình \cfg{E1} và \cfg{E2} có \emph{cùng} kiến trúc suy luận, nên không kỳ vọng giảm độ
+phức tạp kiến trúc chỉ nhờ bỏ head phụ.

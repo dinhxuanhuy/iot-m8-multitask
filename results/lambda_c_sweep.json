@@ -1,0 +1,157 @@
+{
+  "note": "Khảo sát chỉ dùng Macro-F1 validation; test chưa được đánh giá. lambda_c được khóa DÙNG CHUNG cho mọi cấu hình theo tiêu chí: tối đa hóa trung bình Macro-F1 validation qua các cấu hình khảo sát (quy tắc khai báo trước khi chạy).",
+  "grid": [
+    0.05,
+    0.1,
+    0.25,
+    0.5,
+    1.0
+  ],
+  "epochs": 40,
+  "fraction": 0.1,
+  "seed": 42,
+  "records": [
+    {
+      "config": "E4",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 0.05,
+      "best_val_macro_f1": 0.926580410886056,
+      "best_val_loss": 0.0006358996391296386,
+      "best_epoch": 34,
+      "seconds": 426.1765434000408
+    },
+    {
+      "config": "E4",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 0.1,
+      "best_val_macro_f1": 0.9353950886262679,
+      "best_val_loss": 0.0005898149102926254,
+      "best_epoch": 38,
+      "seconds": 430.0014990000054
+    },
+    {
+      "config": "E4",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 0.25,
+      "best_val_macro_f1": 0.9352029308776952,
+      "best_val_loss": 0.0004993730783462525,
+      "best_epoch": 37,
+      "seconds": 426.8082897999557
+    },
+    {
+      "config": "E4",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 0.5,
+      "best_val_macro_f1": 0.9424904054826481,
+      "best_val_loss": 0.00045656102299690247,
+      "best_epoch": 27,
+      "seconds": 419.83957170008216
+    },
+    {
+      "config": "E4",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 1.0,
+      "best_val_macro_f1": 0.9454442362964388,
+      "best_val_loss": 0.0003688832700252533,
+      "best_epoch": 29,
+      "seconds": 416.69104649999645
+    },
+    {
+      "config": "E6",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 0.05,
+      "best_val_macro_f1": 0.9390847966333418,
+      "best_val_loss": 0.0004124727576971054,
+      "best_epoch": 37,
+      "seconds": 521.8927922999719
+    },
+    {
+      "config": "E6",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 0.1,
+      "best_val_macro_f1": 0.9418193327375634,
+      "best_val_loss": 0.0004309055894613266,
+      "best_epoch": 40,
+      "seconds": 521.2387205999112
+    },
+    {
+      "config": "E6",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 0.25,
+      "best_val_macro_f1": 0.9495749207492783,
+      "best_val_loss": 0.0003977506250143051,
+      "best_epoch": 40,
+      "seconds": 524.9322550999932
+    },
+    {
+      "config": "E6",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 0.5,
+      "best_val_macro_f1": 0.9457454248114529,
+      "best_val_loss": 0.0003675482153892517,
+      "best_epoch": 40,
+      "seconds": 525.9066523999209
+    },
+    {
+      "config": "E6",
+      "kind": "supcon",
+      "source": "labeled",
+      "label_pct": 10,
+      "seed": 42,
+      "lambda_c": 1.0,
+      "best_val_macro_f1": 0.94682598907101,
+      "best_val_loss": 0.00033550020456314086,
+      "best_epoch": 39,
+      "seconds": 522.1330448000226
+    }
+  ],
+  "chosen": {
+    "E4": {
+      "lambda_c": 1.0,
+      "val_macro_f1": 0.9454442362964388,
+      "own_best_lambda_c": 1.0,
+      "own_best_val": 0.9454442362964388,
+      "epochs": 40,
+      "fraction": 0.1,
+      "seed": 42
+    },
+    "E6": {
+      "lambda_c": 1.0,
+      "val_macro_f1": 0.94682598907101,
+      "own_best_lambda_c": 0.25,
+      "own_best_val": 0.9495749207492783,
+      "epochs": 40,
+      "fraction": 0.1,
+      "seed": 42
+    }
+  },
+  "shared_lambda_c": 1.0,
+  "shared_mean_val": 0.9461351126837244
+}

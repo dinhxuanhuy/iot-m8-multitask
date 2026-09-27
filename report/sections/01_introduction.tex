@@ -1,0 +1,94 @@
+% =====================================================================
+\section{Đặt vấn đề và mục tiêu}
+\label{sec:intro}
+% =====================================================================
+
+\subsection{Đặt vấn đề}
+\label{sec:intro-problem}
+
+Bài toán được khảo sát là phân loại ảnh CIFAR-10 vào hai siêu lớp do đề tài quy ước:
+\emph{Animal} và \emph{Vehicle}. Mô hình dùng chung một bộ trích xuất đặc trưng ResNet-18 và
+đồng thời học hai nhiệm vụ: nhiệm vụ chính là phân loại siêu lớp có giám sát, nhiệm vụ phụ là
+dự đoán phép xoay đã được áp dụng lên ảnh. Nhãn của nhiệm vụ phụ được sinh tự động từ chính
+phép biến đổi, nhờ đó không cần nhãn ngữ nghĩa của ảnh~\cite{he2016resnet,gidaris2018rotnet}.
+
+Động cơ nghiên cứu không nằm ở việc đề xuất một kiến trúc mới, mà ở việc \emph{đánh giá khả
+năng khai thác tín hiệu tự giám sát khi số ảnh có nhãn dùng cho huấn luyện bị giới hạn}.
+Nhiệm vụ dự đoán góc xoay được vận dụng từ hướng nghiên cứu RotNet; việc ghép ResNet-18 với
+hai đầu ra không được xem là đóng góp kiến trúc. Cần nhấn mạnh một điểm dễ gây nhầm lẫn:
+\emph{góc xoay ở đây là góc biến đổi nhân tạo}, không phải góc tư thế thực của đối tượng
+trong ảnh~\cite{gidaris2018rotnet}.
+
+Ở cấu hình có sử dụng thêm ảnh không nhãn, thiết lập thực chất là \emph{học bán giám sát} với
+một nhiệm vụ phụ tự giám sát. Thuật ngữ \enquote{học đa nhiệm} mô tả giai đoạn huấn luyện;
+khi suy luận, hệ thống chỉ giữ nhiệm vụ phân loại Animal/Vehicle. Vì vậy lợi ích cần kiểm
+chứng là \emph{chất lượng phân loại}, chứ không phải mặc nhiên là giảm chi phí suy luận so với
+một mô hình đơn nhiệm có cùng backbone.
+
+Ba câu hỏi đánh giá được dùng xuyên suốt báo cáo:
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}p{4.6cm} p{10.4cm}@{}}
+    \toprule
+    Câu hỏi & Nội dung đánh giá \\
+    \midrule
+    C1 --- Hiệu quả phân loại &
+    M8 có thay đổi Macro-F1 và Accuracy so với baseline chỉ học phân loại siêu lớp trong cùng
+    ngân sách nhãn hay không? \\
+    \addlinespace
+    C2 --- Vai trò của dữ liệu &
+    Kết quả khác nhau thế nào khi nhánh rotation chỉ dùng ảnh thuộc tập có nhãn và khi được
+    dùng toàn bộ tập train? \\
+    \addlinespace
+    C3 --- Chi phí thực hiện &
+    Chi phí huấn luyện tăng bao nhiêu; mô hình một đầu ra khi suy luận có số tham số, dung
+    lượng và độ trễ như thế nào trên máy đo xác định? \\
+    \bottomrule
+  \end{tabular}
+  \caption{Ba câu hỏi đánh giá và nội dung tương ứng. Câu C1 và C2 được trả lời bằng khối
+  thực nghiệm chính (\secref{sec:results-main}); câu C3 bằng các phép đo chi phí ở
+  \secref{sec:results-cost}.}
+  \label{tab:questions}
+\end{table}
+
+\subsection{Mục tiêu và câu hỏi nghiên cứu}
+\label{sec:intro-goal}
+
+\textbf{Mục tiêu tổng quát.} Xây dựng và đánh giá một quy trình thực nghiệm có thể tái lập để
+xác định ảnh hưởng của nhiệm vụ dự đoán góc xoay đối với phân loại siêu lớp tại các mức
+$10\,\%$, $20\,\%$ và $50\,\%$ nhãn huấn luyện.
+
+\textbf{Mục tiêu mở rộng.} Đề cương giữ hướng Contrastive Learning/SupCon ở phần \emph{mở rộng
+tùy chọn} (các cấu hình \cfg{E3}--\cfg{E6}). Báo cáo này triển khai đầy đủ hướng đó và báo cáo
+kết quả riêng tại \secref{sec:results-ext}, sau khi phần bắt buộc đã hoàn tất.
+
+\textbf{Giả thuyết cần kiểm chứng.} Nhiệm vụ phụ \emph{có thể} cải thiện kết quả, đặc biệt khi
+ít nhãn. Đây là một giả thuyết khoa học, không phải chỉ tiêu cam kết. Báo cáo phải trình bày
+đầy đủ cả trường hợp không cải thiện hoặc suy giảm; không có yêu cầu nào buộc kết quả của M8
+phải cao hơn baseline.
+
+\begin{warnbox}
+\textbf{Nguyên tắc báo cáo trung thực.} Mọi kết quả trong báo cáo này — kể cả kết quả âm —
+đều được giữ nguyên như khi chạy thực nghiệm. Không có số liệu minh họa nào được đặt vào vị
+trí kết quả thực nghiệm, và không có lượt chạy nào bị loại bỏ sau khi đã xem kết quả test.
+Mục tiêu không được điều chỉnh sau khi biết kết quả.
+\end{warnbox}
+
+\subsection{Phạm vi}
+\label{sec:intro-scope}
+
+Giữ nguyên CIFAR-10, ResNet-18 điều chỉnh cho ảnh $32 \times 32$ và thời gian dự kiến bốn
+tuần. Phần bắt buộc tập trung vào baseline và M8; Contrastive Learning/SupCon là mở rộng tùy
+chọn, được triển khai và báo cáo ở \secref{sec:results-ext} nhưng \emph{không} thuộc tiêu chí
+hoàn thành bắt buộc. Việc đánh giá chi phí suy luận phục vụ thảo luận về Edge AI, \emph{không
+thay thế} thử nghiệm trên thiết bị IoT thực tế và \emph{không mặc nhiên} chứng minh khả năng
+triển khai trên vi điều khiển.
+
+\begin{limbox}
+\textbf{Những gì báo cáo này không khẳng định:} (i)~không so sánh trực tiếp Accuracy hai lớp
+với bảng xếp hạng CIFAR-10 mười lớp; (ii)~không khẳng định đặc trưng học được tổng quát hơn
+hay thuật toán là mới; (iii)~không khẳng định tối ưu năng lượng; (iv)~không khẳng định đã xây
+dựng một hệ thống IoT hoàn chỉnh.
+\end{limbox}

@@ -1,0 +1,15 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l r r r@{}}
+    \toprule
+    Điều kiện đo & Mean (ms/ảnh) & Median (ms/ảnh) & p95 (ms/ảnh) \\
+    \midrule
+    CPU (4 luồng), FP32 & \RLatMeanCpu & \RLatMedianCpu & \RLatPNinetyFiveCpu \\
+    GPU (RTX 5070 Laptop), FP32 & \RLatMeanGpu & \RLatMedianGpu & \RLatPNinetyFiveGpu \\
+    \bottomrule
+  \end{tabular}
+  \caption{Độ trễ suy luận với batch $=1$, tensor $1 \times 3 \times 32 \times 32$, FP32, \code{model.eval()} và \code{torch.inference\_mode()}. Mỗi điều kiện khởi động 50 lượt rồi đo 1.000 lượt, lặp ba phiên; giá trị báo cáo là trung bình của ba phiên. Phép đo chỉ tính thời gian tính toán của mô hình, không gồm đọc ảnh và tiền xử lý.}
+  \label{tab:latency}
+\end{table}

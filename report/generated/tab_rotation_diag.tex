@@ -1,0 +1,19 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l r r r@{}}
+    \toprule
+    Cấu hình & Mức nhãn & Lần lặp & Rotation Accuracy (validation) \\
+    \midrule
+    \cfg{E2-L} & 10\,\% & 42 & 0,6322 \\
+    \cfg{E2-L} & 10\,\% & 43 & 0,6178 \\
+    \cfg{E2-L} & 10\,\% & 44 & 0,6122 \\
+    \cfg{E2} & 10\,\% & 42 & 0,7929 \\
+    \cfg{E2} & 10\,\% & 43 & 0,7837 \\
+    \cfg{E2} & 10\,\% & 44 & 0,7764 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Rotation Accuracy chẩn đoán trên $\Dval$, đánh giá đủ bốn phép xoay cho mỗi ảnh. Đây chỉ là chỉ số chẩn đoán nhánh phụ và không thay thế bằng chứng về Macro-F1 của nhiệm vụ chính.}
+  \label{tab:rotation-diag}
+\end{table}

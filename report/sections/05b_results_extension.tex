@@ -1,0 +1,107 @@
+% =====================================================================
+\section{Kết quả phần mở rộng: Contrastive Learning và SupCon}
+\label{sec:results-ext}
+% =====================================================================
+
+Phần này trình bày khối mở rộng tùy chọn \cfg{E3}--\cfg{E6} đã mô tả tại
+\secref{sec:contrastive}, chạy \emph{sau} khi khối đối chứng chính đã hoàn tất. Đây là phần
+nằm ngoài yêu cầu bắt buộc của đề cương, nên mọi kết luận ở đây được trình bày như
+\textbf{bằng chứng thăm dò} chứ không phải kết luận của đề tài.
+
+\subsection{Nguyên tắc khóa siêu tham số}
+\label{sec:results-ext-lambda}
+
+Điều khoản 4.2 của đề cương yêu cầu khóa siêu tham số mở rộng bằng validation trước khi đánh
+giá test, và cấm lựa chọn cấu hình dựa trên kết quả test. Vì vậy quy trình được chia thành hai
+bước tách bạch về mặt thông tin:
+
+\begin{enumerate}[label=\textbf{B\arabic*.},leftmargin=1.4cm,itemsep=3pt]
+  \item \textbf{Khảo sát chỉ trên validation.} Chạy \cfg{E4} và \cfg{E6} tại mức
+        $10\,\%$ nhãn, seed 42, với $\lambda_c \in \{0{,}05;\ 0{,}1;\ 0{,}25;\ 0{,}5;\ 1{,}0\}$.
+        Script khảo sát (\code{scripts/sweep\_lambda\_c.py}) \textbf{không gọi} bước đánh giá
+        test, nên kết quả test không thể ảnh hưởng tới quyết định.
+  \item \textbf{Khóa $\lambda_c$} theo một quy tắc khai báo trước: chọn \emph{một} giá trị dùng
+        chung cho mọi cấu hình mở rộng (đúng như bảng 5 của đề cương) sao cho \emph{trung bình}
+        Macro-F1 validation qua hai cấu hình khảo sát là lớn nhất. Quy tắc này được chọn vì mỗi
+        cấu hình có cực trị riêng (xem \tabref{tab:lambda-sweep}); khóa theo một cấu hình duy
+        nhất có thể rất kém cho cấu hình còn lại.
+\end{enumerate}
+
+\input{generated/tab_lambda_sweep}
+
+\figref{fig:lambda-sweep} cho thấy toàn bộ đường khảo sát. Đáng lưu ý, cả hai hàm mất mát đều
+\emph{nhạy} với $\lambda_c$: chênh lệch giữa giá trị tốt nhất và xấu nhất trong lưới khảo sát là
+khoảng $2$ điểm phần trăm Macro-F1 validation. Điều này khẳng định việc chạy khảo sát là cần
+thiết, thay vì chọn $\lambda_c$ theo trực giác.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.92\textwidth]{../results/figures/fig08_lambda_sweep.png}
+  \caption{Khảo sát $\lambda_c$ \textbf{chỉ trên Macro-F1 validation} (40 epoch, mức
+  $10\,\%$ nhãn, seed 42). Đường đứt dọc là giá trị được khóa. Tập test không được đánh giá
+  trong bước này.}
+  \label{fig:lambda-sweep}
+\end{figure}
+
+\subsection{Kết quả và đối chứng ghép cặp}
+\label{sec:results-ext-main}
+
+Sau khi khóa $\lambda_c$, bốn cấu hình được chạy tại mức nhãn \textbf{$10\,\%$} với ba lần lặp
+42, 43, 44 — tổng cộng $4 \times 3 = 12$ lượt huấn luyện 100 epoch. Mức $10\,\%$ được chọn vì
+đây là mức ưu tiên của đề cương (mục 4.2) và là mức mà phần bắt buộc cho thấy độ biến động lớn
+nhất giữa các cấu hình. Mỗi lượt vẫn giữ đúng giao thức của khối chính: 100 epoch, AdamW, chọn
+checkpoint bằng Macro-F1 validation, không Early Stopping, không dùng test-time augmentation.
+
+\begin{keybox}
+\textbf{Giới hạn phạm vi.} Khối mở rộng chỉ được chạy ở mức $10\,\%$ nhãn; hai mức $20\,\%$ và
+$50\,\%$ \textbf{không} được khảo sát cho \cfg{E3}--\cfg{E6}. Vì vậy mọi kết luận ở
+\secref{sec:results-ext} \emph{chỉ} áp dụng cho mức $10\,\%$ nhãn, kiến trúc và giao thức đã mô
+tả. So sánh với \cfg{E1} vẫn hợp lệ vì \cfg{E1} có kết quả đầy đủ ở cả ba mức nhãn.
+\end{keybox}
+
+\input{generated/tab_extension_results}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../results/figures/fig06_extension_macro_f1.png}
+  \caption{Macro-F1 trên $\Dtest$ của bảy cấu hình, trung bình ba lần lặp, so với mức $0{,}60$
+  của bộ phân loại luôn đoán Animal. Khối chính (\cfg{E1}, \cfg{E2-L}, \cfg{E2}) có kết quả ở
+  cả ba mức nhãn; khối mở rộng contrastive (\cfg{E3}--\cfg{E6}) chỉ có kết quả ở mức
+  $10\,\%$ nhãn.}
+  \label{fig:extension-f1}
+\end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../results/figures/fig07_extension_delta.png}
+  \caption{Chênh lệch ghép cặp $\Delta_s$ so với \cfg{E1} của từng cấu hình mở rộng, mỗi điểm
+  là một lần lặp. Đường ngang là trung bình ba lần lặp. Giá trị dương nghĩa là cấu hình đó tốt
+  hơn baseline ở cùng ngân sách nhãn.}
+  \label{fig:extension-delta}
+\end{figure}
+
+\subsection{Phân tích}
+\label{sec:results-ext-analysis}
+
+\RExtensionAnalysis
+
+\subsection{Chi phí của phần mở rộng}
+\label{sec:results-ext-cost}
+
+\input{generated/tab_extension_cost}
+
+\paragraph{Projection Head không làm mô hình suy luận lớn hơn.}
+Bảng \ref{tab:extension-cost} cho thấy số tham số suy luận của mọi cấu hình \cfg{E3}--\cfg{E6}
+vẫn đúng bằng \RParamInference{} như khối chính. Cả Rotation Head lẫn Projection Head đều
+\textbf{bị bỏ hoàn toàn} khi suy luận, nên chi phí thêm chỉ là chi phí học một lần. Đây là
+điểm khác biệt căn bản so với các kỹ thuật tăng kích thước mô hình để tăng độ chính xác.
+
+\paragraph{Nhánh phụ đắt hơn trong giai đoạn học.}
+Các nhánh phụ khiến mỗi bước cập nhật phải xử lý thêm ảnh: nhánh xoay xử lý một minibatch,
+nhánh contrastive xử lý \emph{hai} view cho mỗi ảnh trong minibatch của nó. Vì mỗi epoch vẫn
+chỉ duyệt $\DL$ một lần, thời gian mỗi epoch tăng gần như tuyến tính theo số lượt ảnh phụ.
+
+\subsection{Kết luận của phần mở rộng}
+\label{sec:results-ext-conclusion}
+
+\RExtensionConclusion

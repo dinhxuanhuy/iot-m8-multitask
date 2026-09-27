@@ -1,0 +1,22 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l l@{}}
+    \toprule
+    Thành phần & Kích thước đầu ra $C \times H \times W$ \\
+    \midrule
+    Ảnh đầu vào & $3 \times 32 \times 32$ \\
+    Conv $3\times3$ + BatchNorm + ReLU & $64 \times 32 \times 32$ \\
+    Nhóm residual 1: 2 BasicBlock & $64 \times 32 \times 32$ \\
+    Nhóm residual 2: 2 BasicBlock & $128 \times 16 \times 16$ \\
+    Nhóm residual 3: 2 BasicBlock & $256 \times 8 \times 8$ \\
+    Nhóm residual 4: 2 BasicBlock & $512 \times 4 \times 4$ \\
+    Global Average Pooling + Flatten & vector 512 chiều \\
+    Superclass Head (tuyến tính, có bias) & $512 \to 2$ \\
+    Rotation Head (tuyến tính, có bias) & $512 \to 4$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Chuỗi kích thước tensor của backbone ResNet-18 điều chỉnh cho ảnh $32 \times 32$. Các giá trị này được kiểm tra tự động bằng \texttt{scripts/self\_test.py} trên môi trường thực nghiệm.}
+  \label{tab:arch}
+\end{table}

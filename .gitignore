@@ -1,0 +1,47 @@
+# ---- Môi trường / Python ----
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# ---- Dữ liệu (tải lại được bằng scripts/prepare_data.py) ----
+data/
+
+# ---- Checkpoint mô hình: nặng ~1.4 GB, không đẩy lên git ----
+results/checkpoints/
+results/checkpoints_ext/
+*.pt
+*.pth
+
+# ---- Công cụ LaTeX tự chứa (tải lại được) ----
+tools/tectonic.exe
+tools/tectonic.zip
+
+# ---- Sản phẩm phụ khi biên dịch LaTeX ----
+report/main.log
+*.aux
+*.out
+*.toc
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+# ---- File tạm khi trích xuất đề cương .docx ----
+_ex.py
+_ex2.py
+_docx_math.txt
+_docx_paras.txt
+_docx_tables.txt
+
+# ---- Hệ điều hành / IDE ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/

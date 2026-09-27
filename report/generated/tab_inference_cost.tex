@@ -1,0 +1,20 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l r@{}}
+    \toprule
+    Thành phần & Giá trị \\
+    \midrule
+    Tham số encoder $\enc$ & 11.168.832 \\
+    Tham số Superclass Head & 1.026 \\
+    Tham số Rotation Head & 2.052 \\
+    Tổng tham số khi suy luận & \RParamInference \\
+    Tổng tham số khi huấn luyện & \RParamTraining \\
+    Dung lượng FP32 của mô hình suy luận & \RParamInferenceMiB{} MiB \\
+    Dung lượng tệp trọng số suy luận đo được & \RParamInferenceFileMiB{} MiB \\
+    \bottomrule
+  \end{tabular}
+  \caption{Chi phí tham số của mô hình tại cấu hình \secref{sec:arch}. Rotation Head chỉ tồn tại trong giai đoạn huấn luyện; khi suy luận chỉ cần encoder và Superclass Head. Dung lượng tệp được đo bằng cách lưu riêng trọng số suy luận, không gộp optimizer state.}
+  \label{tab:inference-cost}
+\end{table}

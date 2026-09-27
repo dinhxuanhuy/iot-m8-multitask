@@ -1,0 +1,16 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}l r r r@{}}
+    \toprule
+    Cấu hình & 10\,\% (giây/lượt) & 20\,\% (giây/lượt) & 50\,\% (giây/lượt) \\
+    \midrule
+    \cfg{E1} & 344,1 & 557,9 & 1.165,4 \\
+    \cfg{E2-L} & 575,5 & 1.026,8 & 2.322,4 \\
+    \cfg{E2} & 578,8 & 1.013,9 & 2.322,3 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Thời gian huấn luyện trung bình cho một lượt chạy 100 epoch. \cfg{E2-L} và \cfg{E2} xử lý thêm minibatch cho nhiệm vụ xoay ở mỗi bước cập nhật, nên chi phí học cao hơn \cfg{E1} một cách có hệ thống.}
+  \label{tab:training-cost}
+\end{table}

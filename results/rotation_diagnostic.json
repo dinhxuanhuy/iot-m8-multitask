@@ -1,0 +1,47 @@
+{
+  "protocol": "đánh giá đủ 4 phép xoay cho mỗi ảnh validation",
+  "rows": [
+    {
+      "tag": "E2-L_L10_s42",
+      "config": "E2-L",
+      "label_pct": 10,
+      "seed": 42,
+      "rotation_accuracy": 0.63225
+    },
+    {
+      "tag": "E2-L_L10_s43",
+      "config": "E2-L",
+      "label_pct": 10,
+      "seed": 43,
+      "rotation_accuracy": 0.61775
+    },
+    {
+      "tag": "E2-L_L10_s44",
+      "config": "E2-L",
+      "label_pct": 10,
+      "seed": 44,
+      "rotation_accuracy": 0.6122
+    },
+    {
+      "tag": "E2_L10_s42",
+      "config": "E2",
+      "label_pct": 10,
+      "seed": 42,
+      "rotation_accuracy": 0.7929
+    },
+    {
+      "tag": "E2_L10_s43",
+      "config": "E2",
+      "label_pct": 10,
+      "seed": 43,
+      "rotation_accuracy": 0.78375
+    },
+    {
+      "tag": "E2_L10_s44",
+      "config": "E2",
+      "label_pct": 10,
+      "seed": 44,
+      "rotation_accuracy": 0.7764
+    }
+  ]
+}

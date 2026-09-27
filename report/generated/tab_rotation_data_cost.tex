@@ -1,0 +1,17 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \small
+  \setlength{\tabcolsep}{6pt}
+  \begin{tabular}{@{}r r r r r@{}}
+    \toprule
+    Mức nhãn & $|\DL|$ (view) & $|\Dtrain|$ (view) & Giây/epoch khi nguồn $= \DL$ & Giây/epoch khi nguồn $= \Dtrain$ \\
+    \midrule
+    10\,\% & 4.500 & 45.000 & 1,2 & 13,2 \\
+    20\,\% & 9.000 & 45.000 & 2,7 & 13,7 \\
+    50\,\% & 22.500 & 45.000 & 6,8 & 13,6 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Chi phí \emph{dựng view} cho nhánh xoay, đo riêng trên CPU, không gồm forward/backward. Mỗi epoch của nhánh phụ cần đúng số view bằng kích thước tập nguồn, nên nguồn $\Dtrain$ làm chi phí dữ liệu của nhánh phụ \emph{không} giảm khi mức nhãn tăng — trong khi ở \cfg{E2-L} chi phí này giảm theo mức nhãn. Đây là nguyên nhân trực tiếp khiến \cfg{E2} đắt hơn \cfg{E2-L} nhiều ở mức $50\,\%$ nhãn.}
+  \label{tab:rotation-data-cost}
+\end{table}

@@ -1,0 +1,18 @@
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}l l l l@{}}
+    \toprule
+    ID & Hàm mục tiêu & Nguồn ảnh cho xoay & Nguồn ảnh cho loss bổ sung \\
+    \midrule
+    \cfg{E3} & $\Lsup + \lambda_c L_{\mathrm{NT\text{-}Xent}}$ & Không có nhánh xoay & $\Dtrain$; không dùng nhãn siêu lớp \\
+    \cfg{E4} & $\Lsup + \lambda_c L_{\mathrm{SupCon}}$ & Không có nhánh xoay & Chỉ $\DL$ có nhãn hợp lệ \\
+    \cfg{E5} & $\Lsup + \lamrot \Lrot + \lambda_c L_{\mathrm{NT\text{-}Xent}}$ & $\Dtrain$ & NT-Xent: $\Dtrain$; rotation: $\Dtrain$ \\
+    \cfg{E6} & $\Lsup + \lamrot \Lrot + \lambda_c L_{\mathrm{SupCon}}$ & $\Dtrain$ & SupCon: $\DL$; rotation: $\Dtrain$ \\
+    \bottomrule
+  \end{tabular}
+  \caption{Bốn cấu hình mở rộng contrastive. $\lambda_c$ dùng chung cho mọi cấu hình và được khóa bằng validation trước khi đánh giá test (\secref{sec:results-ext-lambda}). SupCon chỉ dùng $\DL$; NT-Xent dùng $\Dtrain$ vì không cần nhãn siêu lớp.}
+  \label{tab:extensions}
+\end{table}

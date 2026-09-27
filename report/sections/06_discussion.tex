@@ -1,0 +1,140 @@
+% =====================================================================
+\section{Thảo luận}
+\label{sec:discussion}
+% =====================================================================
+
+\subsection{Trả lời ba câu hỏi đánh giá}
+\label{sec:disc-answers}
+
+\paragraph{C1 --- Hiệu quả phân loại.}
+\RFindingCone
+
+\paragraph{C2 --- Vai trò của dữ liệu cho nhiệm vụ phụ.}
+\RFindingCtwo
+
+\paragraph{C3 --- Chi phí thực hiện.}
+\RFindingCthree
+
+\subsection{Đọc kết quả theo hướng xu hướng ngân sách nhãn}
+\label{sec:disc-trend}
+
+Giả thuyết ban đầu cho rằng nhiệm vụ phụ có lợi nhất khi ít nhãn, vì lúc đó tín hiệu tự giám
+sát bổ sung được thông tin mà nhãn có giám sát không cung cấp đủ. Hình~\ref{fig:macro-f1} cho
+phép kiểm tra giả thuyết này bằng cách so sánh độ lớn của $\Delta$ ở ba mức $10\,\%$, $20\,\%$
+và $50\,\%$. Điều cần chú ý là \emph{độ lớn của $\Delta$}, không chỉ dấu của nó: một cải thiện
+$+0{,}3$ điểm phần trăm nằm trong cùng bậc độ lớn với độ lệch chuẩn quan sát được và do đó
+không thể phân biệt với nhiễu.
+
+\subsection{Các yếu tố gây nhiễu và mối đe dọa đến tính hợp lệ}
+\label{sec:disc-threats}
+
+\paragraph{Nhiễu do thống kê BatchNorm.}
+\label{sec:exempt-bn}
+Như đã nêu ở \secref{sec:arch}, encoder dùng chung các lớp BatchNorm cho cả hai nhánh. Khi so
+sánh \cfg{E2-L} với \cfg{E1}, hai cấu hình khác nhau ở cả hàm mục tiêu \emph{lẫn} thành phần
+của batch đi qua BatchNorm. Vì vậy $\Delta_s$ của phép so sánh này đo \emph{tổng hợp} tác dụng
+của nhiệm vụ phụ và thay đổi chuẩn hóa, không tách riêng được hai thành phần. Đây là hệ quả của
+một quyết định thiết kế kiến trúc (dùng chung BatchNorm là cần thiết để giảm số tham số và giữ
+so sánh tham số ở mức ngang bằng), không phải lỗi cài đặt.
+
+\paragraph{Nhiễu do chọn checkpoint bằng validation.}
+Mọi cấu hình đều được chọn checkpoint bằng Macro-F1 validation cao nhất. Vì chỉ có 5.000 ảnh
+validation, tiêu chí này có phương sai riêng: chênh lệch nhỏ về Macro-F1 test có thể chỉ phản
+ánh việc \enquote{may mắn} khi chọn epoch. Việc dùng cùng tiêu chí cho mọi cấu hình làm giảm
+nhưng không loại bỏ được vấn đề này.
+
+\paragraph{Chỉ ba lần lặp.}
+Ba lần lặp cho phép ước lượng một độ lệch chuẩn mẫu nhưng khoảng tin cậy vẫn rất rộng. Với
+$n=3$, một chênh lệch trung bình bằng $0$ hoàn toàn tương thích với các lần lặp có $\Delta_s$
+trái dấu. Do đó báo cáo này chỉ trình bày \emph{hướng} của hiệu ứng.
+
+\paragraph{Phép chia dữ liệu cố định.}
+Cả ba lần lặp dùng chung một tập validation và một tập test. Phương sai do chính phép chia gây
+ra \textbf{không} được ước lượng. Muốn ước lượng thành phần này cần lặp lại cả phép chia, tức
+tăng chi phí lên đáng kể.
+
+\paragraph{Không dùng Early Stopping.}
+Quyết định bỏ Early Stopping để bảo đảm số bước cập nhật có giám sát giống nhau. Đánh đổi là
+một số lượt chạy có thể đã quá khớp (xem loss huấn luyện rất nhỏ ở cuối giai đoạn, ví dụ
+$L_{\mathrm{sup}} < 0{,}01$ ở epoch 100 tại mức $10\,\%$ nhãn), và checkpoint được chọn gần
+cuối quá trình. Đây là hành vi nhất quán giữa các cấu hình, nhưng số liệu cuối cùng không phản
+ánh chất lượng tốt nhất mà cấu hình đó có thể đạt được dưới một chiến lược dừng khác.
+
+\paragraph{Kích thước batch và chất lượng BatchNorm.}
+Với $|\DL| = 4.500$ ở mức $10\,\%$, một epoch chỉ có 36 bước cập nhật. Số bước nhỏ làm cho
+thống kê BatchNorm kém ổn định hơn so với trường hợp nhiều dữ liệu. Đây là hiệu ứng có thật của
+thiết lập ít nhãn và không nên che giấu.
+
+\subsection{Những gì đã được cưỡng chế bằng mã nguồn, không chỉ bằng văn bản}
+\label{sec:disc-enforced}
+
+Một phần giá trị của báo cáo này nằm ở chỗ các ràng buộc về phương pháp được \emph{cưỡng chế}
+bằng mã chứ không chỉ được ghi trong văn bản:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=3pt]
+  \item Hàm \code{make\_run\_loaders} nhận tham số \code{rotation\_source}; với \cfg{E1} giá
+        trị là \code{"none"} và \textbf{không có} DataLoader nào cho nhánh xoay được tạo ra.
+        Do đó không thể vô tình đưa ảnh xoay qua BatchNorm trong cấu hình baseline.
+  \item Dataset \code{RotationViewDataset} là cấu trúc duy nhất biết $\DU$; nó chứa chỉ mục
+        nhưng \textbf{không} chứa nhãn siêu lớp, nên một lỗi lập trình ở nhánh phụ không thể
+        vô tình đọc nhãn thật.
+  \item Bộ sinh số ngẫu nhiên riêng cho nhánh phụ được khởi tạo tách khỏi RNG chính, nên thêm
+        nhánh phụ không làm thay đổi augmentation của nhánh phân loại.
+  \item Tập test chỉ được truy cập ở hàm \code{evaluate} cuối cùng sau khi checkpoint đã được
+        cố định bằng validation.
+\end{itemize}
+
+\subsection{Vì sao contrastive learning không tự động giúp phân loại}
+\label{sec:disc-contrastive}
+
+Khối mở rộng \cfg{E3}--\cfg{E6} cung cấp một đối chứng quan trọng cho trực giác thường gặp rằng
+\enquote{thêm học tự giám sát thì tốt hơn}. Có ít nhất bốn lý do khiến nhiệm vụ phụ contrastive
+không đương nhiên cải thiện nhiệm vụ phân loại siêu lớp:
+
+\begin{enumerate}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{Mục tiêu khác nhau.} NT-Xent học bất biến trước \emph{tăng cường ảnh} (cắt, đổi
+        màu, chuyển xám). Animal và Vehicle phân biệt nhau bằng \emph{hình dạng ngữ nghĩa}, mà
+        tăng cường mạnh lại chính là thứ \emph{phá} thông tin cấp thấp hữu ích. Hai mục tiêu
+        không mâu thuẫn về nguyên tắc nhưng không trùng nhau.
+  \item \textbf{Encoder bị chia sẻ với hai mục tiêu cạnh tranh.} Vì $\enc$ là duy nhất cho mọi
+        nhánh, gradient của loss contrastive có thể kéo encoder về vùng làm giảm chất lượng đặc
+        trưng cho phân loại ngay ở giai đoạn đầu — khi đó gradient phân loại còn yếu vì chỉ có
+        $|\DL|$ nhỏ.
+  \item \textbf{Chi phí phải trả bằng chính ngân sách cập nhật.} Mỗi bước vẫn chỉ thực hiện một
+        bước optimizer. Việc thêm hai view contrastive làm thay đổi phân bố gradient của bước
+        đó, chứ không \enquote{thêm} bước học. Đây chính là lý do vì sao so sánh phải \emph{ghép
+        cặp theo cùng số bước cập nhật}, và vì sao không thể diễn giải kết quả mở rộng như
+        \enquote{cùng ngân sách tính toán}.
+  \item \textbf{Nguồn ảnh không nhãn không tự động chuyển thành tín hiệu hữu ích.} E3/E5 dùng
+        cả $\Dtrain$ (gấp 10 lần $\DL$ ở mức $10\,\%$ nhãn), nhưng ảnh không nhãn chỉ cung cấp
+        tín hiệu nếu \emph{bất biến mà chúng dạy được} trùng với bất biến mà nhiệm vụ chính cần.
+\end{enumerate}
+
+\RExtensionAnalysis
+
+Một điểm phương pháp luận đáng nhấn mạnh: $\lambda_c$ của báo cáo này được chọn bằng
+Macro-F1 \emph{validation} với một script không đánh giá test
+(\secref{sec:results-ext-lambda}). Nếu cho phép chọn $\lambda_c$ bằng test, kết quả của khối mở
+rộng sẽ trông tốt hơn một cách giả tạo. Đây là loại sai lệch mà đề cương yêu cầu phải tránh.
+
+\subsection{Hướng cải thiện}
+\label{sec:disc-next}
+
+Theo thứ tự ưu tiên dựa trên kết quả thu được:
+
+\begin{enumerate}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{Tăng số lần lặp} lên tối thiểu $5$--$10$ ở mức $10\,\%$ nhãn, mức được dự đoán
+        nhạy nhất với nhiệm vụ phụ. Đây là thay đổi cho tỷ lệ tín hiệu/nhiễu tốt nhất trên mỗi
+        đơn vị chi phí.
+  \item \textbf{Tách BatchNorm theo nhánh} (ví dụ dùng \code{Affine} riêng cho nhánh phụ thay vì
+        dùng chung thống kê chạy) để có thể quy kết hiệu ứng cho nhiệm vụ phụ thay vì cho thay
+        đổi chuẩn hóa.
+  \item \textbf{Khảo sát $\lamrot$} trên lưới đã khai báo $\{0{,}1;\ 0{,}25;\ 0{,}5;\ 1{,}0\}$
+        ở mức $10\,\%$ nhãn, kèm kiểm tra Rotation Accuracy để biết nhánh phụ có thực sự được
+        học hay không.
+  \item \textbf{Thay đổi tỷ lệ đóng góp} giữa hai nhánh bằng cách chỉnh kích thước $B_R$ thay
+        vì chỉ chỉnh $\lamrot$.
+  \item \textbf{Chỉ sau khi phần chính đã đủ} mới triển khai \emph{một} nhánh mở rộng contrastive
+        (\tabref{tab:extensions}), ưu tiên SupCon vì nó chỉ dùng $\DL$ và do đó không làm phức
+        tạp thêm câu hỏi về việc che nhãn.
+\end{enumerate}

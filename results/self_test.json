@@ -1,0 +1,178 @@
+{
+  "environment": {
+    "python": "3.12.10",
+    "torch": "2.11.0+cu128",
+    "torchvision": "0.26.0+cu128",
+    "torch_cuda_build": "12.8",
+    "cudnn": 91900,
+    "cuda_available": true,
+    "gpu": "NVIDIA GeForce RTX 5070 Laptop GPU",
+    "gpu_memory_mib": 8150.6,
+    "cpu": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "cpu_threads": 16,
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpu_count": 16,
+    "ram_gib": 63.4,
+    "physical_cores": 16
+  },
+  "parameters": {
+    "encoder": 11168832,
+    "super_head": 1026,
+    "rotation_head": 2052,
+    "training_total": 11171910,
+    "inference_total": 11169858,
+    "inference_fp32_mib": 42.60962677001953,
+    "inference_file_bytes": 44753931,
+    "inference_file_mib": 42.68067455291748
+  },
+  "feature_shapes": [
+    [
+      "Ảnh đầu vào",
+      [
+        3,
+        32,
+        32
+      ]
+    ],
+    [
+      "Conv 3x3 + BN + ReLU",
+      [
+        64,
+        32,
+        32
+      ]
+    ],
+    [
+      "Nhóm residual 1: 2 BasicBlock",
+      [
+        64,
+        32,
+        32
+      ]
+    ],
+    [
+      "Nhóm residual 2: 2 BasicBlock",
+      [
+        128,
+        16,
+        16
+      ]
+    ],
+    [
+      "Nhóm residual 3: 2 BasicBlock",
+      [
+        256,
+        8,
+        8
+      ]
+    ],
+    [
+      "Nhóm residual 4: 2 BasicBlock",
+      [
+        512,
+        4,
+        4
+      ]
+    ],
+    [
+      "Global Average Pooling + Flatten",
+      [
+        512
+      ]
+    ]
+  ],
+  "benchmark_audit": {
+    "no_overlap_train_val": true,
+    "sizes": {
+      "D_train": 45000,
+      "D_val": 5000,
+      "D_test": 10000
+    },
+    "nesting": {
+      "42": {
+        "nested": true,
+        "sizes": {
+          "10": 4500,
+          "20": 9000,
+          "50": 22500
+        }
+      },
+      "43": {
+        "nested": true,
+        "sizes": {
+          "10": 4500,
+          "20": 9000,
+          "50": 22500
+        }
+      },
+      "44": {
+        "nested": true,
+        "sizes": {
+          "10": 4500,
+          "20": 9000,
+          "50": 22500
+        }
+      }
+    },
+    "label_budget": {
+      "s42_10": {
+        "dl": 4500,
+        "du": 40500,
+        "disjoint": true,
+        "no_val_leak": true
+      },
+      "s42_20": {
+        "dl": 9000,
+        "du": 36000,
+        "disjoint": true,
+        "no_val_leak": true
+      },
+      "s42_50": {
+        "dl": 22500,
+        "du": 22500,
+        "disjoint": true,
+        "no_val_leak": true
+      },
+      "s43_10": {
+        "dl": 4500,
+        "du": 40500,
+        "disjoint": true,
+        "no_val_leak": true
+      },
+      "s43_20": {
+        "dl": 9000,
+        "du": 36000,
+        "disjoint": true,
+        "no_val_leak": true
+      },
+      "s43_50": {
+        "dl": 22500,
+        "du": 22500,
+        "disjoint": true,
+        "no_val_leak": true
+      },
+      "s44_10": {
+        "dl": 4500,
+        "du": 40500,
+        "disjoint": true,
+        "no_val_leak": true
+      },
+      "s44_20": {
+        "dl": 9000,
+        "du": 36000,
+        "disjoint": true,
+        "no_val_leak": true
+      },
+      "s44_50": {
+        "dl": 22500,
+        "du": 22500,
+        "disjoint": true,
+        "no_val_leak": true
+      }
+    },
+    "train_animal_share": 0.6,
+    "val_animal_share": 0.6
+  },
+  "rotation_check_ok": true,
+  "passed": true
+}

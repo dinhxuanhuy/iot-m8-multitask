@@ -1,0 +1,57 @@
+% =====================================================================
+%  Tóm tắt
+% =====================================================================
+\section*{Tóm tắt}
+\addcontentsline{toc}{section}{Tóm tắt}
+
+\RIncomplete
+
+\noindent
+Báo cáo này trình bày một quy trình thực nghiệm có thể tái lập để đánh giá ảnh hưởng của
+một \emph{nhiệm vụ phụ tự giám sát} đối với bài toán phân loại ảnh khi ngân sách nhãn bị
+giới hạn. Cụ thể, CIFAR-10 được gộp thành hai siêu lớp do đề tài quy ước là
+\emph{Animal} (6 lớp gốc) và \emph{Vehicle} (4 lớp gốc); một encoder ResNet-18 điều chỉnh cho
+ảnh $32 \times 32$ được dùng chung cho hai đầu ra: phân loại siêu lớp có giám sát và dự đoán
+góc xoay $k \in \{0,1,2,3\}$ được sinh tự động bằng \code{torch.rot90}. Nhãn của nhiệm vụ
+phụ không cần nhãn ngữ nghĩa, nên nhánh xoay có thể khai thác thêm phần ảnh đã bị ẩn nhãn
+của tập huấn luyện.
+
+Khối thực nghiệm chính gồm ba cấu hình (\cfg{E1} baseline chỉ học siêu lớp, \cfg{E2-L} thêm
+nhánh xoay nhưng chỉ dùng ảnh có nhãn, \cfg{E2} thêm nhánh xoay và dùng toàn bộ $\Dtrain$),
+ba mức tỷ lệ nhãn ($10\,\%$, $20\,\%$, $50\,\%$) và ba lần lặp ghép cặp, tổng cộng \RRuns{}
+lượt huấn luyện, mỗi lượt 100 epoch với tổng thời gian huấn luyện \RTotalHours{} giờ.
+Chỉ số chính là Macro-F1 trên toàn bộ 10.000 ảnh test; Accuracy, precision/recall/F1 từng lớp
+và ma trận nhầm lẫn được báo cáo kèm theo.
+
+\medskip
+\noindent\textbf{Kết quả chính.}
+Tại mức nhãn $10\,\%$, Macro-F1 trên tập test đạt \REoneTenVal{} cho \cfg{E1} và \REtwoTenVal{}
+cho \cfg{E2} (chênh lệch ghép cặp trung bình \REtwoTenDelta{} điểm phần trăm); tại mức
+$50\,\%$ nhãn, \cfg{E1} đạt \REoneFiftyVal{} và \cfg{E2} đạt \REtwoFiftyVal{}
+(chênh lệch \REtwoFiftyDelta{} điểm phần trăm). \RFindingSentence
+
+\medskip
+\noindent\textbf{Đóng góp có thể kiểm chứng.}
+(i)~Một phép chia benchmark được đóng băng (seed 2026) với các tập nhãn lồng nhau
+$\DL^{(10\%)} \subset \DL^{(20\%)} \subset \DL^{(50\%)}$ và chỉ mục đầy đủ được lưu lại;
+(ii)~một giao thức kiểm tra việc che nhãn ở mức chỉ mục, bảo đảm nhãn thật của $\DU$ không
+đi vào loss, không dùng để chọn positive pair và không tham gia chọn checkpoint;
+(iii)~một khối kết quả ghép cặp theo lần lặp với chênh lệch $\Delta_s$ và độ lệch chuẩn
+tường minh, kèm phân tích trường hợp không cải thiện;
+(iv)~cài đặt đầy đủ \emph{bốn} cấu hình mở rộng contrastive \cfg{E3}--\cfg{E6} (NT-Xent và
+SupCon) với siêu tham số $\lambda_c$ được khóa \emph{chỉ bằng validation} qua một quy trình
+hai bước tách bạch thông tin;
+(v)~các phép đo chi phí huấn luyện và suy luận được tách riêng, với kết luận về IoT được
+giới hạn đúng theo thiết bị đã đo.
+
+\medskip
+\noindent\textbf{Kết quả phần mở rộng contrastive.}
+\RExtensionConclusion
+
+\medskip
+\noindent\textbf{Giới hạn.}
+Kết luận chỉ áp dụng cho phép gộp hai siêu lớp, các tỷ lệ nhãn và giao thức đã khảo sát.
+Ba lần lặp chỉ cung cấp bằng chứng ban đầu về độ ổn định, không đủ để khẳng định ý nghĩa
+thống kê. Kết quả đo độ trễ trên CPU của máy tính dùng để huấn luyện không phải là bằng chứng
+về khả năng triển khai trên vi điều khiển. Không có kết quả nào trong báo cáo này được suy ra
+từ số liệu minh họa.

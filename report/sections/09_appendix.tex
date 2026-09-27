@@ -1,0 +1,182 @@
+% =====================================================================
+\appendix
+\section{Phụ lục}
+\label{sec:appendix}
+% =====================================================================
+
+\subsection{Kiểm tra kỹ thuật tự động}
+\label{sec:appendix-selftest}
+
+Trước khi huấn luyện, script \code{scripts/self\_test.py} kiểm tra bốn nhóm thuộc tính và ghi
+kết quả vào \code{results/self\_test.json}. Bảng dưới đây tóm tắt các kiểm tra và tiêu chí đạt.
+
+\begin{table}[htbp]
+  \centering
+  \small
+  \begin{tabular}{@{}p{5.2cm} p{5.0cm} l@{}}
+    \toprule
+    Kiểm tra & Tiêu chí & Kết quả \\
+    \midrule
+    Chuỗi kích thước tensor & Khớp bảng \ref{tab:arch} &
+    \textcolor{m8green}{\textbf{ĐẠT}} \\
+    Số tham số suy luận & $11.169.858$ & \textcolor{m8green}{\textbf{ĐẠT}} \\
+    Số tham số huấn luyện & $11.171.910$ & \textcolor{m8green}{\textbf{ĐẠT}} \\
+    Forward/backward ba cấu hình & Không lỗi, logits đúng chiều & \textcolor{m8green}{\textbf{ĐẠT}} \\
+    \code{torch.rot90} khớp nhãn $k$ & Sai số $< 10^{-5}$ & \textcolor{m8green}{\textbf{ĐẠT}} \\
+    Không trùng split & $\Dtrain \cap \Dval = \varnothing$ & \textcolor{m8green}{\textbf{ĐẠT}} \\
+    Tập nhãn lồng nhau & $\DL^{10} \subset \DL^{20} \subset \DL^{50}$ & \textcolor{m8green}{\textbf{ĐẠT}} \\
+    Không rò rỉ nhãn & $\DL \cap \DU = \varnothing$ và $(\DL \cup \DU) \cap \Dval = \varnothing$
+    & \textcolor{m8green}{\textbf{ĐẠT}} \\
+    Số lượng theo \tabref{tab:label-budget} & Đúng $4.500 / 9.000 / 22.500$ &
+    \textcolor{m8green}{\textbf{ĐẠT}} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Kết quả kiểm tra kỹ thuật tự động trên môi trường thực nghiệm. Script trả mã thoát
+  khác $0$ nếu bất kỳ kiểm tra nào không đạt, nên quy trình có thể được dùng trong CI.}
+  \label{tab:selftest}
+\end{table}
+
+\subsection{Gói mã nguồn bàn giao}
+\label{sec:appendix-repro}
+
+\paragraph{Cấu trúc thư mục.}
+\begin{lstlisting}[language=bash,caption={Cấu trúc gói tái lập.},label={lst:tree}]
+D:\IOT
+|- .venv/                     # moi truong ao Python 3.12
+|- requirements.txt
+|- data/
+|  |- cifar-10-batches-py/    # du lieu goc
+|  |- artifacts/splits.json   # chi muc split/subset da dong bang
+|- src/m8/
+|  |- config.py               # hang so giao thuc (ke ca sieu tham so contrastive)
+|  |- data.py                 # anh xa sieu lop, split, ngan sach nhan, view contrastive
+|  |- models.py               # ResNet-18 32x32 + MultiTaskNet (3 head tuy chon)
+|  |- contrastive.py          # Projection Head, NT-Xent, SupCon
+|  |- train.py                # vong huan luyen E1..E6
+|  |- evaluate.py             # Macro-F1, Accuracy, per-class, confusion
+|  |- benchmark.py            # tham so, dung luong, do tre
+|  |- experiments.py          # dieu phoi khoi chinh va khoi mo rong
+|- scripts/
+|  |- prepare_data.py         # tai du lieu + kiem tra split
+|  |- self_test.py            # kiem tra ky thuat tu dong
+|  |- check_contrastive.py    # kiem tra NT-Xent/SupCon bang vi du tinh tay
+|  |- sweep_lambda_c.py       # khao sat lambda_c CHI tren validation
+|  |- lock_lambda_c.py        # ap quy tac khoa lambda_c
+|  |- run_experiments.py      # khoi thuc nghiem chinh (27 luot)
+|  |- run_extensions.py       # khoi mo rong contrastive (E3--E6)
+|  |- run_inference_benchmark.py
+|  |- run_rotation_diagnostic.py   # Rotation Accuracy chan doan
+|  |- run_rotation_data_cost.py    # chi phi dung view cua nhanh phu
+|  |- make_dataset_figures.py # hinh minh hoa du lieu (muc 2)
+|  |- make_figures.py         # sinh hinh cho bao cao
+|  |- make_extension_figures.py    # hinh khoi mo rong
+|  |- make_report_data.py     # sinh bang/macro LaTeX
+|  |- verify_macros.py, verify_tables.py, verify_pdf.py, inventory.py
+|- notebooks/
+|  |- M8_CIFAR10_MultiTask.ipynb
+|- results/
+|  |- checkpoints/*.json|*.pt # ket qua va checkpoint khoi chinh
+|  |- checkpoints_ext/*.json|*.pt  # ket qua khoi mo rong E3--E6
+|  |- summary.json            # tong hop khoi chinh
+|  |- summary_all.json        # tong hop gop ca hai khoi
+|  |- lambda_c_sweep.json     # khao sat lambda_c (chi validation)
+|  |- benchmark_audit.json    # ket qua kiem tra che nhan
+|  |- self_test.json, environment.json, inference_benchmark.json
+|  |- rotation_diagnostic.json, rotation_data_cost.json
+|  |- figures/*.png
+|- report/                    # bao cao LaTeX nay
+\end{lstlisting}
+
+\paragraph{Quy trình chạy lại từ đầu.}
+\begin{lstlisting}[language=bash,caption={Tái lập toàn bộ kết quả từ dữ liệu gốc.},label={lst:repro}]
+cd D:\IOT
+.venv\Scripts\python.exe scripts\prepare_data.py          # tai du lieu + dong bang split
+.venv\Scripts\python.exe scripts\self_test.py             # kiem tra ky thuat
+.venv\Scripts\python.exe scripts\run_experiments.py       # 27 luot huan luyen
+.venv\Scripts\python.exe scripts\run_inference_benchmark.py
+.venv\Scripts\python.exe scripts\make_figures.py          # sinh hinh
+.venv\Scripts\python.exe scripts\make_report_data.py      # sinh bang LaTeX
+cd report && tectonic -X compile main.tex                 # bien dich bao cao
+\end{lstlisting}
+
+\paragraph{Tính xác định và khả năng tái lập.}
+Mọi nguồn ngẫu nhiên đều được ghim: seed chia split $2026$; seed lần lặp $42$, $43$, $44$ dùng
+cho khởi tạo trọng số, thứ tự dữ liệu, augmentation và bộ sinh số riêng của nhánh phụ. Chỉ mục
+đầy đủ của mọi tập được lưu ở \code{data/artifacts/splits.json}. Trên phần cứng có kiến trúc
+GPU khác, kết quả số sẽ không trùng khít vì một số phép tính trên GPU không có tính kết hợp
+chặt, nhưng quy trình và phép chia dữ liệu vẫn tái lập được~\cite{pytorch_reproducibility}.
+
+\subsection{Chi tiết từng lượt chạy}
+\label{sec:appendix-perrun}
+
+\input{generated/tab_per_run}
+
+\subsection{Kiểm thử tự động}
+\label{sec:appendix-tests}
+
+Bên cạnh script kiểm tra một lần, dự án có bộ kiểm thử tự động trong \code{tests/test\_m8.py}
+được viết cho \code{pytest}. Các bài kiểm thử bám vào những tính chất \emph{bắt buộc} của giao
+thức, nên nếu ai đó sửa mã làm sai giao thức thì kiểm thử sẽ thất bại. Nhóm được kiểm tra gồm:
+
+\begin{itemize}[leftmargin=1.2cm,itemsep=2pt]
+  \item ánh xạ siêu lớp và ngân sách nhãn khớp bảng~\ref{tab:label-budget};
+  \item chuỗi kích thước tensor và số tham số khớp bảng~\ref{tab:arch} và
+        \tabref{tab:inference-cost};
+  \item stem không có MaxPool, đúng \code{Conv2d(3,64,3,stride=1,padding=1,bias=False)};
+  \item \cfg{E1} không có Rotation Head; hai cấu hình ghép cặp dùng cùng trọng số khởi tạo của
+        encoder và Superclass Head;
+  \item nhãn $k$ sinh ra khớp chính xác \code{torch.rot90} của ảnh gốc, $k$ trải đều cả bốn giá
+        trị;
+  \item hằng số chuẩn hóa cố định: ảnh đen thành $-1$, ảnh trắng thành $+1$;
+  \item phép chia benchmark: kích thước, phân tầng, tập lồng nhau, không rò rỉ sang validation;
+  \item \cfg{E1} không tạo DataLoader nào cho nhánh xoay; \cfg{E2-L} chỉ dùng $\DL$; \cfg{E2} dùng
+        đủ 45.000 ảnh của $\Dtrain$;
+  \item dataset xoay không mang nhãn siêu lớp nên không thể rò rỉ nhãn;
+  \item Macro-F1 khớp ví dụ tính tay và quy ước mẫu số bằng $0$ cho kết quả $0$;
+  \item bộ phân loại luôn đoán Animal đạt đúng Accuracy $60\,\%$ trên phép chia này;
+  \item cấu hình optimizer và scheduler đúng tham số, learning rate về $0$ sau $T_{\max}$ bước;
+  \item \textbf{$\lamrot = 0$ vẫn làm thay đổi thống kê BatchNorm} — kiểm chứng trực tiếp lập luận
+        ở \secref{sec:exempt-bn};
+  \item khởi tạo theo seed là tái lập được;
+  \item \textbf{nhánh contrastive}: NT-Xent khớp công thức tính tay và bằng $\log 3$ ở trường
+        hợp suy biến; SupCon khớp công thức $L_{\mathrm{out}}$ tính tay và trả $0$ (không
+        $\mathrm{NaN}$) khi không có positive pair — đây là hồi quy cho lỗi $-\infty \cdot 0$;
+  \item Projection Head không làm thay đổi số tham số suy luận và không nhận gradient từ
+        nhiệm vụ phân loại;
+  \item dataset contrastive từ $\Dtrain$ \textbf{không} mang nhãn; hai view của cùng một ảnh
+        thực sự khác nhau;
+  \item ánh xạ \cfg{E3}--\cfg{E6} sang nhánh xoay và loại loss contrastive đúng bảng 5.
+\end{itemize}
+
+Kết quả lần chạy gần nhất: \textbf{49 bài kiểm thử ĐẠT, 0 thất bại}
+(\code{pytest tests -q}, log lưu ở \code{results/logs/pytest.log}). Ngoài ra
+\code{scripts/check\_contrastive.py} chạy kiểm tra độc lập cho nhánh contrastive và trả mã thoát
+khác $0$ nếu bất kỳ kiểm tra nào không đạt.
+
+\subsection{Bảng số liệu dạng CSV}
+\label{sec:appendix-csv}
+
+Danh sách đầy đủ các chỉ số của từng lượt chạy, ở dạng dễ xử lý bằng máy, được lưu tại
+\code{results/runs\_table.csv}. Tệp này chứa: tag lượt chạy, cấu hình, mức nhãn, lần lặp, epoch
+được chọn, Macro-F1 và Accuracy trên validation, Macro-F1 và Accuracy trên test, F1 và
+precision/recall của từng siêu lớp, thời gian huấn luyện, và số tham số suy luận/huấn luyện.
+Ma trận nhầm lẫn đầy đủ của từng lượt nằm trong tệp JSON tương ứng ở
+\code{results/checkpoints/}.
+
+\subsection{Đường học của toàn bộ lịch sử huấn luyện}
+\label{sec:appendix-history}
+
+Mỗi tệp \code{results/checkpoints/<tag>.json} chứa trường \code{history} với đầy đủ 100 bản ghi
+epoch, mỗi bản ghi gồm: loss huấn luyện của nhánh có giám sát, loss huấn luyện của nhánh phụ
+(bằng \code{null} với \cfg{E1}), tổng loss, loss phân loại trên validation, Macro-F1 validation,
+Accuracy validation, learning rate hiện hành và thời gian của epoch. Nhờ vậy, mọi hình trong báo
+cáo đều có thể được dựng lại từ dữ liệu thô mà không cần chạy lại mô hình.
+
+\subsection{Ghi nhận về các thiết lập được đề xuất}
+\label{sec:appendix-proposed}
+
+Một số hằng số trong báo cáo là \emph{thiết lập được khóa trước để khép kín giao thức}, không
+phải giá trị do giảng viên hay sinh viên xác nhận trước khi chạy: seed chia split $2026$, hằng
+số chuẩn hóa $(0{,}5;\ 0{,}5;\ 0{,}5)$, quy tắc lấy minibatch cho nhánh phụ, và số lượt đo độ
+trễ ($50$ lượt khởi động $+$ $1.000$ lượt đo $\times$ ba phiên). Các giá trị này được chốt
+\emph{trước} khi chạy để tránh việc điều chỉnh giao thức sau khi đã thấy kết quả test.
