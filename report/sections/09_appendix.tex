@@ -96,25 +96,33 @@ D:\IOT
 
 \begin{keybox}
 \textbf{Về checkpoint và gói bàn giao.} Đề cương §5.2 yêu cầu đóng gói checkpoint đã chọn bằng
-validation cho các lượt chính. Checkpoint nặng khoảng $46$~MB mỗi lượt (tổng $\sim1{,}4$~GB cho
-$39$ lượt), nên \textbf{không} đưa thẳng vào kho mã nguồn; \code{.gitignore} loại
-\code{results/checkpoints/}, \code{results/checkpoints\_ext/} và mọi tệp \code{*.pt}.
-
-Để vẫn thoả yêu cầu, kho mã nguồn kèm sẵn:
+validation. Toàn bộ checkpoint của $39$ lượt nặng khoảng $\sim1{,}7$~GB ($\sim44$~MB mỗi lượt),
+vượt mức hợp lý cho một kho mã nguồn, nên kho kèm \textbf{hai} checkpoint đại diện thay vì tất cả:
 
 \begin{itemize}[leftmargin=1.1cm,itemsep=2pt]
-  \item \code{results/test\_predictions/<tag>.npz} — dự đoán test \emph{theo đúng chỉ mục} gốc
-        $0$--$9999$, kèm \code{logits} và \code{prob} softmax. Mỗi tệp chỉ $\sim150$~KB nên
-        \textbf{được bàn giao}, đúng yêu cầu \enquote{kèm logits hoặc dự đoán test theo chỉ mục}.
-  \item \code{scripts/package\_delivery.py} — đóng gói checkpoint thành tệp riêng kèm
-        \code{MANIFEST.json} có băm SHA-256 của từng tệp. Script \emph{kiểm chứng lại chỉ số}
-        của mỗi checkpoint trước khi đóng gói: nạp lại, chạy trên $\Dtest$, so với chỉ số đã ghi
-        trong \code{<tag>.json}; dung sai đo bằng số ảnh bị lật.
+  \item \code{results/checkpoints\_ext/E4\_L10\_s42.pt} — cấu hình \cfg{E4} (SupCon), Macro-F1
+        test $0{,}9529$. Đây là mô hình \emph{tốt thứ nhì toàn báo cáo} và tốt hơn mọi cấu hình
+        bắt buộc, nên đại diện cho kết luận trung tâm của phần mở rộng.
+  \item \code{results/checkpoints\_ext/E3\_L10\_s42.pt} — cấu hình \cfg{E3} (NT-Xent), Macro-F1
+        test $0{,}9413$. Cùng mức nhãn, cùng seed và cùng điều kiện với \cfg{E4}, nên cặp đôi này
+        cho phép kiểm chứng \emph{trực tiếp} so sánh SupCon nghiêng hơn NT-Xent.
+  \item \code{results/checkpoints\_ext/*.json} — chỉ số và \code{history} đầy đủ $100$ epoch của
+        cả $12$ lượt khối mở rộng.
+  \item \code{results/checkpoints\_ext/README.md} — bảng băm SHA-256, cách nạp và cách tái lập
+        chỉ số cho hai checkpoint trên.
 \end{itemize}
 
-Bản thân \emph{chỉ số} của mọi lượt chạy vẫn được bàn giao đầy đủ dưới dạng
+Ngoài ra, dự đoán test \emph{theo đúng chỉ mục} gốc $0$--$9999$ được bàn giao cho $5$ lượt dưới
+dạng \code{results/test\_predictions/<tag>.npz}, kèm \code{logits} và \code{prob} softmax — mỗi
+tệp chỉ $\sim150$~KB, đúng yêu cầu \enquote{kèm logits hoặc dự đoán test theo chỉ mục}.
+\code{scripts/package\_delivery.py} đóng gói thêm thành tệp riêng kèm \code{MANIFEST.json} có băm
+SHA-256, và \emph{kiểm chứng lại chỉ số} của mỗi checkpoint trước khi đóng gói: nạp lại, chạy
+trên $\Dtest$, so với chỉ số đã ghi trong \code{<tag>.json}; dung sai đo bằng số ảnh bị lật.
+
+Phần \textbf{không} được đóng gói là checkpoint của $27$ lượt khối chính (nặng $\sim1{,}2$~GB và
+hiện không còn trên máy phân tích). Bù lại, \emph{chỉ số} của mọi lượt vẫn bàn giao đầy đủ qua
 \code{results/runs\_table.csv} và \code{summary*.json}, nên mọi bảng trong báo cáo đều kiểm tra
-lại được. Muốn dựng lại checkpoint, chạy \code{scripts/run\_experiments.py} và
+lại được. Muốn dựng lại toàn bộ checkpoint, chạy \code{scripts/run\_experiments.py} và
 \code{scripts/run\_extensions.py} như mục dưới; kết quả đã có sẽ được bỏ qua nên chỉ tốn thời
 gian cho phần còn thiếu.
 \end{keybox}

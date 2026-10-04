@@ -16,8 +16,10 @@ __pycache__/
 data/
 
 # ---- Checkpoint mô hình: nặng ~1.4 GB, không đẩy lên git ----
+# Ngoại lệ cho gói bàn giao được khai báo ở CUỐI tệp: gitignore xét theo thứ tự,
+# nên mẫu `!` phải đứng SAU mọi mẫu đã loại trừ tệp đó.
 results/checkpoints/
-results/checkpoints_ext/
+results/checkpoints_ext/*
 *.pt
 *.pth
 
@@ -71,3 +73,11 @@ desktop.ini
 # Gói Colab: chỉ giữ script tái lập, bỏ phần dư có thể sinh lại
 .colab-bundle/bundle/
 .colab-bundle/m8-bundle.zip
+
+# ---- Gói bàn giao: 2 checkpoint đã kiểm chứng + chỉ số đầy đủ khối mở rộng ----
+# Đặt Ở CUỐI TỆP để thắng các mẫu loại trừ phía trên. Xem
+# results/checkpoints_ext/README.md để biết vì sao chỉ hai tệp .pt được đóng gói.
+!results/checkpoints_ext/README.md
+!results/checkpoints_ext/E3_L10_s42.pt
+!results/checkpoints_ext/E4_L10_s42.pt
+!results/checkpoints_ext/*.json

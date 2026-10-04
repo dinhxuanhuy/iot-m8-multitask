@@ -55,6 +55,7 @@ phần mở rộng tùy chọn (mục 3.3 đề cương) và được triển kh
 | Script chạy từng bước | [`scripts/`](scripts) |
 | Kết quả thô + hình | [`results/`](results) |
 | **Chỉ mục split/subset đã đóng băng** | [`results/split_indices.json`](results/split_indices.json) (3 MB) |
+| **Trọng số đã huấn luyện (2 checkpoint)** | [`E4_L10_s42.pt`](results/checkpoints_ext/E4_L10_s42.pt) 95,29 % · [`E3_L10_s42.pt`](results/checkpoints_ext/E3_L10_s42.pt) 94,13 % — xem [`README.md`](results/checkpoints_ext/README.md) |
 | Kiểm tra che nhãn | [`results/benchmark_audit.json`](results/benchmark_audit.json) |
 | Dự đoán test theo chỉ mục | `results/test_predictions/*.npz` |
 | Tài liệu Colab CLI (tham chiếu) | [`vendor/colab-cli-docs/`](vendor/colab-cli-docs/INDEX.md) |
