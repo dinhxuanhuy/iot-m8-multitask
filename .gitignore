@@ -2,6 +2,10 @@
 .venv/
 venv/
 env/
+# Môi trường dựng tạm để sinh lại hình (không thuộc gói bàn giao)
+.venv-build/
+.pip-cache/
+.mplcache/
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -20,6 +24,24 @@ results/checkpoints_ext/
 # ---- Công cụ LaTeX tự chứa (tải lại được) ----
 tools/tectonic.exe
 tools/tectonic.zip
+tools/tectonic
+.tectonic-cache/
+
+# ---- Thư mục xuất PDF khi build kiểm tra ----
+report-build/
+
+# ---- BẢO MẬT: trạng thái xác thực Google Colab ----
+# .colab-home/ chứa .config/colab-cli/token.json (token OAuth truy cập Colab).
+# TUYỆT ĐỐI không đẩy lên git. .colab-auth.log có thể chứa URL/authorization code.
+.colab-home/
+.colab-auth.log
+
+# ---- Gói làm việc với Colab (script giữ lại, tệp nén thì không) ----
+.colab-bundle/*.zip
+
+# ---- Sản phẩm phụ của lượt benchmark thử nghiệm ----
+results/checkpoints_ext_bench/
+results/summary_bench.json
 
 # ---- Sản phẩm phụ khi biên dịch LaTeX ----
 report/main.log
@@ -45,3 +67,7 @@ Thumbs.db
 desktop.ini
 .idea/
 .vscode/
+
+# Gói Colab: chỉ giữ script tái lập, bỏ phần dư có thể sinh lại
+.colab-bundle/bundle/
+.colab-bundle/m8-bundle.zip

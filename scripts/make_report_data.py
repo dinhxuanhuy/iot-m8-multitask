@@ -22,7 +22,9 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from m8.config import CHECKPOINT_DIR, CHECKPOINT_EXT_DIR, LABEL_BUDGET, RESULTS_DIR  # noqa: E402
+from m8.config import (  # noqa: E402
+    CHECKPOINT_DIR, CHECKPOINT_EXT_DIR, LABEL_BUDGET, MAIN_CONFIGS, RESULTS_DIR,
+)
 from m8.experiments import load_all_runs, load_all_runs_multi, summarize_runs  # noqa: E402
 
 GEN = ROOT / "report" / "generated"
@@ -222,16 +224,16 @@ def tab_hyperparams() -> str:
 def tab_experiment_matrix() -> str:
     """Bảng 5 của đề cương: bốn cấu hình mở rộng contrastive E3--E6."""
     rows = [
-        (r"\cfg{E3}", r"$\Lsup + \lambda_c L_{\mathrm{NT\text{-}Xent}}$",
+        (r"\cfg{E3}", r"$\Lsup + \lamc \Lntxent$",
          r"Không có nhánh xoay",
          r"$\Dtrain$; không dùng nhãn siêu lớp"),
-        (r"\cfg{E4}", r"$\Lsup + \lambda_c L_{\mathrm{SupCon}}$",
+        (r"\cfg{E4}", r"$\Lsup + \lamc \Lsupcon$",
          r"Không có nhánh xoay",
          r"Chỉ $\DL$ có nhãn hợp lệ"),
-        (r"\cfg{E5}", r"$\Lsup + \lamrot \Lrot + \lambda_c L_{\mathrm{NT\text{-}Xent}}$",
+        (r"\cfg{E5}", r"$\Lsup + \lamrot \Lrot + \lamc \Lntxent$",
          r"$\Dtrain$",
          r"NT-Xent: $\Dtrain$; rotation: $\Dtrain$"),
-        (r"\cfg{E6}", r"$\Lsup + \lamrot \Lrot + \lambda_c L_{\mathrm{SupCon}}$",
+        (r"\cfg{E6}", r"$\Lsup + \lamrot \Lrot + \lamc \Lsupcon$",
          r"$\Dtrain$",
          r"SupCon: $\DL$; rotation: $\Dtrain$"),
     ]
@@ -251,7 +253,7 @@ def tab_experiment_matrix() -> str:
     lines += [
         r"    \bottomrule",
         r"  \end{tabular}",
-        r"  \caption{Bốn cấu hình mở rộng contrastive. $\lambda_c$ dùng chung cho mọi cấu hình và "
+        r"  \caption{Bốn cấu hình mở rộng contrastive. $\lamc$ dùng chung cho mọi cấu hình và "
         r"được khóa bằng validation trước khi đánh giá test (\secref{sec:results-ext-lambda}). "
         r"SupCon chỉ dùng $\DL$; NT-Xent dùng $\Dtrain$ vì không cần nhãn siêu lớp.}",
         r"  \label{tab:extensions}",
@@ -301,7 +303,10 @@ def tab_main_results(summary: dict, pct: Optional[int] = None) -> str:
             if cfg == "E1":
                 d = r"---"
             elif delta:
-                sign = "+" if delta["mean"] >= 0 else "$-$"
+                # Dấu âm phải là '-' trần rồi bọc $...$ MỘT lần. Bản cũ đặt sign = "$-$"
+                # rồi bọc thêm $...$ nữa, sinh ra "$$-$0,06$" — tức một cặp $$ (display
+                # math rỗng) chèn vào giữa bảng.
+                sign = "+" if delta["mean"] >= 0 else "-"
                 d = f"${sign}{vn(abs(delta['mean']), 2)}$"
             else:
                 d = "---"
@@ -397,7 +402,9 @@ def tab_per_class(summary: dict, pct: int = 10) -> str:
         r"  \caption{Precision, recall và F1 từng siêu lớp tại mức " + str(pct) + r"\,\% nhãn "
         r"(trung bình ba lần lặp). Vì tỷ lệ Animal/Vehicle là 60/40, Accuracy đơn lẻ không "
         r"phản ánh đầy đủ chất lượng của từng lớp.}",
-        r"  \label{tab:per-class}",
+        # Nhãn phải PHỤ THUỘC mức nhãn: bản cũ dùng chung "tab:per-class" cho cả bảng 10%
+        # và 50%, gây "multiply defined labels" và làm \ref trỏ không xác định.
+        f"  \\label{{tab:per-class-{pct}}}",
         r"\end{table}",
     ]
     return "\n".join(lines)
@@ -462,7 +469,8 @@ def tab_training_cost(summary: dict) -> str:
     lines += [
         r"    \bottomrule",
         r"  \end{tabular}",
-        r"  \caption{Thời gian huấn luyện trung bình cho một lượt chạy 100 epoch. "
+        r"  \caption{Thời gian huấn luyện trung bình cho một lượt chạy 100 epoch, " \
+        r"trung bình qua BA lần lặp (độ lệch chuẩn xem \tabref{tab:main-std}). "
         r"\cfg{E2-L} và \cfg{E2} xử lý thêm minibatch cho nhiệm vụ xoay ở mỗi bước cập nhật, "
         r"nên chi phí học cao hơn \cfg{E1} một cách có hệ thống.}",
         r"  \label{tab:training-cost}",
@@ -496,7 +504,9 @@ def tab_inference_cost() -> str:
     lines += [
         r"    \bottomrule",
         r"  \end{tabular}",
-        r"  \caption{Chi phí tham số của mô hình tại cấu hình \secref{sec:arch}. Rotation Head "
+        r"  \caption{Chi phí tham số của mô hình tại cấu hình \secref{sec:arch}. Đây là đại lượng " 
+        r"\emph{xác định} (đếm trên kiến trúc), \textbf{không} phải trung bình qua nhiều lần "
+        r"chạy. Rotation Head "
         r"chỉ tồn tại trong giai đoạn huấn luyện; khi suy luận chỉ cần encoder và Superclass Head. "
         r"Dung lượng tệp được đo bằng cách lưu riêng trọng số suy luận, không gộp optimizer state.}",
         r"  \label{tab:inference-cost}",
@@ -527,8 +537,10 @@ def tab_latency() -> str:
         r"  \end{tabular}",
         r"  \caption{Độ trễ suy luận với batch $=1$, tensor $1 \times 3 \times 32 \times 32$, "
         r"FP32, \code{model.eval()} và \code{torch.inference\_mode()}. Mỗi điều kiện khởi động "
-        r"50 lượt rồi đo 1.000 lượt, lặp ba phiên; giá trị báo cáo là trung bình của ba phiên. "
-        r"Phép đo chỉ tính thời gian tính toán của mô hình, không gồm đọc ảnh và tiền xử lý.}",
+        r"50 lượt rồi đo 1.000 lượt, lặp ba phiên. Cách tổng hợp ba phiên KHÔNG giống nhau: "
+        r"\emph{mean} và \emph{p95} là trung bình cộng của ba phiên, còn \emph{median} là trung "
+        r"vị của ba trung vị phiên (xem \code{src/m8/benchmark.py}). Phép đo chỉ tính thời gian "
+        r"tính toán của mô hình, không gồm đọc ảnh và tiền xử lý.}",
         r"  \label{tab:latency}",
         r"\end{table}",
     ]
@@ -704,7 +716,7 @@ def tab_lambda_sweep() -> str:
         r"  \small",
         r"  \begin{tabular}{@{}l " + " ".join([r"c"] * len(lambdas)) + r"@{}}",
         r"    \toprule",
-        r"    Cấu hình & " + " & ".join([f"$\\lambda_c = {vn(l, 2)}$" for l in lambdas]) + r" \\",
+        r"    Cấu hình & " + " & ".join([f"$\\lamc = {vn(l, 2)}$" for l in lambdas]) + r" \\",
         r"    \midrule",
     ]
     for cfg in configs:
@@ -725,11 +737,11 @@ def tab_lambda_sweep() -> str:
     lines += [
         r"    \bottomrule",
         r"  \end{tabular}",
-        r"  \caption{Khảo sát $\lambda_c$ bằng \textbf{Macro-F1 validation} với "
+        r"  \caption{Khảo sát $\lamc$ bằng \textbf{Macro-F1 validation} với "
         + vn(data.get("epochs", 0), 0) + r" epoch, mức "
         + vn(data.get("fraction", 0) * 100, 0) + r"\,\% nhãn, seed "
         + str(data.get("seed", "")) + r". Tập test \textbf{không} được đánh giá trong bước này. "
-        r"Quy tắc khóa được khai báo trước: chọn \emph{một} $\lambda_c$ dùng chung cho mọi cấu "
+        r"Quy tắc khóa được khai báo trước: chọn \emph{một} $\lamc$ dùng chung cho mọi cấu "
         r"hình mở rộng sao cho trung bình Macro-F1 validation qua hai cấu hình khảo sát là lớn "
         r"nhất; giá trị được chọn là "
         + vn(data.get("shared_lambda_c", 0), 2) + r" (trung bình "
@@ -769,10 +781,10 @@ def tab_rotation_data_cost() -> str:
         r"    \bottomrule",
         r"  \end{tabular}",
         r"  \caption{Chi phí \emph{dựng view} cho nhánh xoay, đo riêng trên CPU, không gồm "
-        r"forward/backward. Mỗi epoch của nhánh phụ cần đúng số view bằng kích thước tập nguồn, "
-        r"nên nguồn $\Dtrain$ làm chi phí dữ liệu của nhánh phụ \emph{không} giảm khi mức nhãn "
-        r"tăng — trong khi ở \cfg{E2-L} chi phí này giảm theo mức nhãn. Đây là nguyên nhân trực "
-        r"tiếp khiến \cfg{E2} đắt hơn \cfg{E2-L} nhiều ở mức $50\,\%$ nhãn.}",
+        r"forward/backward. Bảng đo theo GIẢ ĐỊNH nhánh phụ duyệt hết tập nguồn mỗi epoch; "
+        r"trong mã nguồn thì $B_R$ được cắt về đúng $b_L$, nên số view \emph{thực dùng} mỗi "
+        r"epoch bằng $|\DL|$ ở cả \cfg{E2-L} và \cfg{E2}. Vì vậy chi phí dựng view thực tế của "
+        r"hai cấu hình gần như bằng nhau, và tỷ lệ nêu trên là chi phí của kịch bản giả định.}",
         r"  \label{tab:rotation-data-cost}",
         r"\end{table}",
     ]
@@ -989,7 +1001,7 @@ def _extension_text(summary: dict) -> tuple[str, str]:
                 better = hi if d["mean"] > 0 else lo
                 rot_notes.append(
                     f"{pct}\\,\\% nhãn: thêm nhánh xoay (\\cfg{{{hi}}} so với \\cfg{{{lo}}}) "
-                    f"chệch {_signed(d['mean'])} điểm phần trăm về phía \\cfg{{{better}}}"
+                    f"chênh {_signed(d['mean'])} điểm phần trăm về phía \\cfg{{{better}}}"
                 )
 
     best_overall = None
@@ -1068,7 +1080,7 @@ def build_finding_macros(summary: dict) -> Dict[str, str]:
 
 
 REQUIRED_MACROS = {
-    "Runs", "TotalHours", "Incomplete",
+    "Runs", "ExtRuns", "TotalHours", "Incomplete",
     "EnvPython", "EnvTorch", "EnvTorchvision", "EnvCudaBuild", "EnvGpu", "EnvVram",
     "EnvCpu", "EnvCores", "EnvRam",
     "ParamInference", "ParamTraining", "ParamRotationHead", "ParamInferenceMiB",
@@ -1112,7 +1124,12 @@ def build_macros(summary: dict, extras: dict, stub: bool = False) -> str:
     gpu = bench.get("latency_gpu", {})
 
     flat = summary["runs"]
-    total_seconds = sum(r["train_seconds"] for r in flat)
+    # ``\RRuns`` và ``\RTotalHours`` được dùng trong văn xuôi để nói về KHỐI CHÍNH (mục 5.1,
+    # mục 9.1, phần tóm tắt). Khi hàm này nhận ``summary_all`` (đã gộp khối mở rộng E3--E6),
+    # nếu không lọc lại thì hai macro sẽ cộng dồn cả hai khối và mâu thuẫn với chính câu
+    # "3 cấu hình × 3 mức nhãn × 3 lần lặp" ngay cạnh đó.
+    main_flat = [r for r in flat if r["config"] in MAIN_CONFIGS]
+    total_seconds = sum(r["train_seconds"] for r in main_flat)
 
     def g(d, *keys, default=0.0):
         cur = d
@@ -1123,7 +1140,8 @@ def build_macros(summary: dict, extras: dict, stub: bool = False) -> str:
         return cur
 
     macros = {
-        "Runs": str(len(flat)),
+        "Runs": str(len(main_flat)),
+        "ExtRuns": str(len(flat) - len(main_flat)),
         "TotalHours": vn(total_seconds / 3600.0, 2),
         "EnvPython": tex_escape(str(env.get("python", "---"))),
         "EnvTorch": tex_escape(str(env.get("torch", "---"))),

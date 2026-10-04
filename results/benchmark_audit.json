@@ -1,0 +1,92 @@
+{
+  "no_overlap_train_val": true,
+  "sizes": {
+    "D_train": 45000,
+    "D_val": 5000,
+    "D_test": 10000
+  },
+  "nesting": {
+    "42": {
+      "nested": true,
+      "sizes": {
+        "10": 4500,
+        "20": 9000,
+        "50": 22500
+      }
+    },
+    "43": {
+      "nested": true,
+      "sizes": {
+        "10": 4500,
+        "20": 9000,
+        "50": 22500
+      }
+    },
+    "44": {
+      "nested": true,
+      "sizes": {
+        "10": 4500,
+        "20": 9000,
+        "50": 22500
+      }
+    }
+  },
+  "label_budget": {
+    "s42_10": {
+      "dl": 4500,
+      "du": 40500,
+      "disjoint": true,
+      "no_val_leak": true
+    },
+    "s42_20": {
+      "dl": 9000,
+      "du": 36000,
+      "disjoint": true,
+      "no_val_leak": true
+    },
+    "s42_50": {
+      "dl": 22500,
+      "du": 22500,
+      "disjoint": true,
+      "no_val_leak": true
+    },
+    "s43_10": {
+      "dl": 4500,
+      "du": 40500,
+      "disjoint": true,
+      "no_val_leak": true
+    },
+    "s43_20": {
+      "dl": 9000,
+      "du": 36000,
+      "disjoint": true,
+      "no_val_leak": true
+    },
+    "s43_50": {
+      "dl": 22500,
+      "du": 22500,
+      "disjoint": true,
+      "no_val_leak": true
+    },
+    "s44_10": {
+      "dl": 4500,
+      "du": 40500,
+      "disjoint": true,
+      "no_val_leak": true
+    },
+    "s44_20": {
+      "dl": 9000,
+      "du": 36000,
+      "disjoint": true,
+      "no_val_leak": true
+    },
+    "s44_50": {
+      "dl": 22500,
+      "du": 22500,
+      "disjoint": true,
+      "no_val_leak": true
+    }
+  },
+  "train_animal_share": 0.6,
+  "val_animal_share": 0.6
+}

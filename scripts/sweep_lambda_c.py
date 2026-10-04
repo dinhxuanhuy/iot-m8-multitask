@@ -38,8 +38,11 @@ from m8.train import make_optimizer, make_scheduler, validate  # noqa: E402
 from m8.models import build_model  # noqa: E402
 from m8.contrastive import contrastive_loss  # noqa: E402
 
-#: Lưới λ_c khóa trước khi chạy (không điều chỉnh sau khi thấy kết quả)
-LAMBDA_C_GRID: tuple[float, ...] = (0.0, 0.05, 0.1, 0.25, 0.5)
+#: Lưới λ_c khóa trước khi chạy (không điều chỉnh sau khi thấy kết quả).
+#: PHẢI khớp với `grid` trong results/lambda_c_sweep.json — lưới đã dùng thật là
+#: [0.05, 0.1, 0.25, 0.5, 1.0]. Trước đây hằng số này ghi (0.0, 0.05, 0.1, 0.25, 0.5),
+#: tức KHÔNG khớp lưới đã chạy, nên gây khó tái lập.
+LAMBDA_C_GRID: tuple[float, ...] = (0.05, 0.1, 0.25, 0.5, 1.0)
 
 
 @dataclass

@@ -97,11 +97,17 @@ PIN_MEMORY: bool = True
 # Mở rộng contrastive (mục 3.3, bảng 5 của đề cương — E3..E6)
 # Mọi siêu tham số ở đây được khóa TRƯỚC khi chạy để không điều chỉnh theo kết quả test.
 # --------------------------------------------------------------------------
-LAMBDA_CONTRASTIVE: float = 0.5             # lambda_c cho mọi cấu hình mở rộng
+LAMBDA_CONTRASTIVE: float = 1.0             # lambda_c ĐÃ KHÓA bằng validation (xem ghi chú dưới)
 PROJ_DIM: int = 128                         # chiều Projection Head dùng khi huấn luyện
 TEMPERATURE_SUPCON: float = 0.1             # nhiệt độ cho L_SupCon
 TEMPERATURE_NTXENT: float = 0.2             # nhiệt độ cho L_NT-Xent
 SUPCON_BATCH_MULTIPLIER: int = 2            # "2N view" của SupCon: hai view mỗi mẫu
+
+# GHI CHÚ về lambda_c: giá trị CHÍNH THỨC nằm ở results/lambda_c_sweep.json (khoá
+# `shared_lambda_c`, hiện = 1,0) do scripts/sweep_lambda_c.py sinh ra và
+# scripts/lock_lambda_c.py chốt. scripts/run_extensions.py LUÔN đọc lại giá trị đó và
+# ghi đè spec, nên mặc định ở đây không ảnh hưởng các lượt đã chạy. Mặc định được đặt
+# bằng đúng giá trị đã khóa để không gây nhầm lẫn.
 
 # Danh sách mức nhãn dùng cho khối mở rộng (10% là mức ưu tiên theo mục 4.2)
 EXTENSION_LABEL_FRACTIONS: Tuple[float, ...] = (0.10, 0.20)
@@ -139,7 +145,7 @@ CONTRASTIVE_SOURCE: Dict[str, str] = {
 }
 MAIN_CONFIGS: Tuple[str, ...] = (CONFIG_E1, CONFIG_E2L, CONFIG_E2)
 
-# Khảo sát độ nhạy lambda (tùy chọn, mục 4.2)
+# Khảo sát độ nhạy lambda_rot (mục 4.2 đề cương; KHÁC với lambda_c của khối mở rộng)
 LAMBDA_GRID: Tuple[float, ...] = (0.1, 0.25, 0.5, 1.0)
 
 # --------------------------------------------------------------------------

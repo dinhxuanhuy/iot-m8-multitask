@@ -24,6 +24,11 @@
 \usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.8cm,right=2.3cm,headsep=0.6cm]{geometry}
 \usepackage{fancyhdr}
 \usepackage{setspace}
+% Giãn dòng cho tiếng Việt: dấu chồng hai tầng (ẫ ộ ự ỡ) sẽ ĐỤNG vào dòng trên nếu
+% để giãn dòng đơn, trông như mất dấu khi in. Chuẩn học thuật Việt Nam là 1,5;
+% dùng 1,25 để cân bằng với giới hạn 15–25 trang của đề cương.
+% Phải khớp với report/main-linux.tex để hai bản build không lệch nhau.
+\setstretch{1.25}
 \usepackage{parskip}
 \usepackage{microtype}
 \usepackage{ragged2e}
@@ -67,6 +72,10 @@
 \definecolor{m8light}{HTML}{F2F5F8}
 \definecolor{m8green}{HTML}{2C7A3F}
 \definecolor{m8red}{HTML}{B03A2E}
+% ---------- Màu nhận diện HCMUTE (lấy trực tiếp từ huy hiệu trường) ----------
+\definecolor{hcmuteblue}{HTML}{283090}
+\definecolor{hcmutered}{HTML}{E81820}
+\definecolor{hcmutegray}{HTML}{4A4A4A}
 
 \hypersetup{
   colorlinks=true,
@@ -130,7 +139,13 @@
 \newcommand{\Dtest}{D_{\mathrm{test}}}
 \newcommand{\Lsup}{L_{\mathrm{sup}}}
 \newcommand{\Lrot}{L_{\mathrm{rot}}}
+% Loss mở rộng (E3--E6). \Lcon là loss contrastive chung: NT-Xent ở E3/E5,
+% SupCon ở E4/E6 — dùng khi viết phương trình tổng hợp.
+\newcommand{\Lntxent}{L_{\mathrm{NT\text{-}Xent}}}
+\newcommand{\Lsupcon}{L_{\mathrm{SupCon}}}
+\newcommand{\Lcon}{L_{\mathrm{con}}}
 \newcommand{\lamrot}{\lambda_{\mathrm{rot}}}
+\newcommand{\lamc}{\lambda_{\mathrm{c}}}
 \newcommand{\lam}{\lambda}
 \newcommand{\enc}{f_{\theta}}
 \newcommand{\gsup}{g_{\mathrm{sup}}}

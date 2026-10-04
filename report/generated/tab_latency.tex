@@ -10,6 +10,6 @@
     GPU (RTX 5070 Laptop), FP32 & \RLatMeanGpu & \RLatMedianGpu & \RLatPNinetyFiveGpu \\
     \bottomrule
   \end{tabular}
-  \caption{Độ trễ suy luận với batch $=1$, tensor $1 \times 3 \times 32 \times 32$, FP32, \code{model.eval()} và \code{torch.inference\_mode()}. Mỗi điều kiện khởi động 50 lượt rồi đo 1.000 lượt, lặp ba phiên; giá trị báo cáo là trung bình của ba phiên. Phép đo chỉ tính thời gian tính toán của mô hình, không gồm đọc ảnh và tiền xử lý.}
+  \caption{Độ trễ suy luận với batch $=1$, tensor $1 \times 3 \times 32 \times 32$, FP32, \code{model.eval()} và \code{torch.inference\_mode()}. Mỗi điều kiện khởi động 50 lượt rồi đo 1.000 lượt, lặp ba phiên. Cách tổng hợp ba phiên KHÔNG giống nhau: \emph{mean} và \emph{p95} là trung bình cộng của ba phiên, còn \emph{median} là trung vị của ba trung vị phiên (xem \code{src/m8/benchmark.py}). Phép đo chỉ tính thời gian tính toán của mô hình, không gồm đọc ảnh và tiền xử lý.}
   \label{tab:latency}
 \end{table}

@@ -1,58 +1,129 @@
 % =====================================================================
-%  Trang bìa
+%  Trang bìa — phong cách "HCMUT report template"
+%  (thuanmazda/hcmut-report-template) đã chuyển thể sang HCMUTE.
+%
+%  LƯU Ý KỸ THUẬT: template gốc chạy pdfLaTeX (\usepackage{vietnam},
+%  [T5]{fontenc}, mathptmx). Báo cáo này chạy XeLaTeX + fontspec +
+%  polyglossia + unicode-math, và hai bộ đó KHÔNG thể trộn. Vì vậy chỉ
+%  phần ĐỒ HOẠ trang bìa (khung viền + hoa văn góc + bố cục) được port;
+%  toàn bộ preamble của template gốc KHÔNG được nhập vào.
+%
+%  Nguồn huy hiệu: report/assets/Logo_Trường_Đại_Học_Sư_Phạm_Kỹ_Thuật_
+%  TP_Hồ_Chí_Minh.png (do sinh viên cung cấp, 1200x1540) — đã tách phần
+%  huy hiệu khỏi dòng chữ "HCMUTE" và thêm 6% lề trong suốt, lưu thành
+%  report/assets/hcmute-emblem.png. Màu khung lấy đúng màu xanh của huy
+%  hiệu: #283090 (đỏ #E81820).
+%
+%  BỐ CỤC ĐÃ ĐƯỢC KIỂM CHỨNG BẰNG BIÊN DỊCH THẬT: vừa đúng 1 trang A4.
+%  Nếu sửa các khoảng \vspace bên dưới, PHẢI biên dịch lại và kiểm tra
+%  số trang, vì trang bìa rất dễ tràn sang trang 2.
 % =====================================================================
 \begin{titlepage}
+% Giữ trang bìa ở giãn dòng ĐƠN: bìa chủ yếu là dòng đơn, nếu để \setstretch{1.25}
+% toàn cục thì bìa tràn sang trang 2 (đã kiểm chứng bằng biên dịch thật).
+\begin{spacing}{1.0}
+
+% ---------------------------------------------------------------------
+%  Khung viền + hoa văn góc
+%  (port từ thuanmazda/hcmut-report-template — toạ độ đã chỉnh lại cho
+%   lề của báo cáo này: trái 2,8cm · phải 2,3cm · trên/dưới 2,5cm)
+% ---------------------------------------------------------------------
+\begin{tikzpicture}[remember picture,overlay,inner sep=0,outer sep=0]
+  % Bốn góc khung: A = trên-phải, B = trên-trái, C = dưới-trái, D = dưới-phải
+  \draw[hcmuteblue,line width=3.2pt]
+        ([xshift=-1.7cm,yshift=-1.9cm]current page.north east) coordinate (A)
+     -- ([xshift=1.7cm,yshift=-1.9cm]current page.north west)  coordinate (B)
+     -- ([xshift=1.7cm,yshift=1.9cm]current page.south west)   coordinate (C)
+     -- ([xshift=-1.7cm,yshift=1.9cm]current page.south east)  coordinate (D)
+     -- cycle;
+
+  % Hoa văn góc: hai đường gấp khúc lồng nhau (0,5cm và 0,3cm)
+  \draw[hcmutegray,line width=0.4pt]
+     ([yshift=0.5cm,xshift=-0.5cm]A)-- ([yshift=0.5cm,xshift=0.5cm]B)--
+     ([yshift=-0.5cm,xshift=0.5cm]B) --([yshift=-0.5cm,xshift=-0.5cm]B)--
+     ([yshift=0.5cm,xshift=-0.5cm]C)--([yshift=0.5cm,xshift=0.5cm]C)--
+     ([yshift=-0.5cm,xshift=0.5cm]C)-- ([yshift=-0.5cm,xshift=-0.5cm]D)--
+     ([yshift=0.5cm,xshift=-0.5cm]D)--([yshift=0.5cm,xshift=0.5cm]D)--
+     ([yshift=-0.5cm,xshift=0.5cm]A)--([yshift=-0.5cm,xshift=-0.5cm]A)--
+     ([yshift=0.5cm,xshift=-0.5cm]A);
+
+  \draw[hcmutegray,line width=0.4pt]
+     ([yshift=0.3cm,xshift=0.3cm]A)-- ([yshift=0.3cm,xshift=-0.3cm]B)--
+     ([yshift=-0.3cm,xshift=-0.3cm]B) --([yshift=-0.3cm,xshift=0.3cm]B)--
+     ([yshift=0.3cm,xshift=0.3cm]C)--([yshift=0.3cm,xshift=-0.3cm]C)--
+     ([yshift=-0.3cm,xshift=-0.3cm]C)-- ([yshift=-0.3cm,xshift=0.3cm]D)--
+     ([yshift=0.3cm,xshift=0.3cm]D)--([yshift=0.3cm,xshift=-0.3cm]D)--
+     ([yshift=-0.3cm,xshift=-0.3cm]A)--([yshift=-0.3cm,xshift=0.3cm]A)--
+     ([yshift=0.3cm,xshift=0.3cm]A);
+\end{tikzpicture}
+
 \centering
-\vspace*{0.4cm}
+\vspace*{0.15cm}
 
+% ---------------------------------------------------------------------
+%  Cơ quan chủ quản + nhà trường
+%  (HCMUTE trực thuộc Bộ Giáo dục và Đào tạo, KHÔNG thuộc ĐHQG TP.HCM —
+%   nên dòng "ĐẠI HỌC QUỐC GIA THÀNH PHỐ HỒ CHÍ MINH" của template gốc
+%   đã được bỏ. Nếu khoa/lớp yêu cầu thêm dòng bộ chủ quản, bỏ chú thích
+%   ở hai dòng ngay dưới đây.)
+% ---------------------------------------------------------------------
+% {\sffamily\bfseries\large BỘ GIÁO DỤC VÀ ĐÀO TẠO\par}
+% \vspace{3pt}
 {\sffamily\bfseries\large TRƯỜNG ĐẠI HỌC CÔNG NGHỆ KỸ THUẬT\\[2pt]
-THÀNH PHỐ HỒ CHÍ MINH\par}
+ THÀNH PHỐ HỒ CHÍ MINH\par}
+\vspace{1pt}
+{\sffamily\small KHOA CÔNG NGHỆ THÔNG TIN\par}
 
-\vspace{0.5cm}
-{\color{m8blue}\rule{\textwidth}{1.2pt}}
+\vspace{0.55cm}
+\includegraphics[height=3.15cm]{assets/hcmute-emblem.png}
 \vspace{0.6cm}
 
 {\sffamily\bfseries HỌC PHẦN: TRÍ TUỆ NHÂN TẠO CHO IoT\par}
 
-\vspace{1.0cm}
-{\sffamily\bfseries\Large ĐỀ CƯƠNG TIỂU LUẬN CUỐI KHÓA\par}
-\vspace{0.5cm}
-{\sffamily\bfseries\LARGE\color{m8blue}
-HỌC ĐA NHIỆM TRÊN CIFAR-10:\\[4pt]
-PHÂN LOẠI SIÊU LỚP KẾT HỢP\\[4pt]
-DỰ ĐOÁN GÓC XOAY ẢNH TỰ GIÁM SÁT\par}
+\vspace{0.6cm}
+{\sffamily\bfseries\large BÁO CÁO TIỂU LUẬN CUỐI KHÓA\par}
+\vspace{0.35cm}
+{\sffamily\bfseries\Large\color{hcmuteblue}
+ HỌC ĐA NHIỆM TRÊN CIFAR-10:\\[3pt]
+ PHÂN LOẠI SIÊU LỚP KẾT HỢP\\[3pt]
+ DỰ ĐOÁN GÓC XOAY ẢNH TỰ GIÁM SÁT\par}
 
-\vspace{0.7cm}
+\vspace{0.4cm}
 {\itshape\large Đánh giá trong điều kiện hạn chế nhãn huấn luyện\par}
 
-\vspace{0.3cm}
-{\color{m8blue}\rule{\textwidth}{0.8pt}}
-\vspace{1.4cm}
+\vspace{0.35cm}
+{\color{hcmuteblue}\rule{0.72\textwidth}{0.9pt}}
+\vspace{0.4cm}
 
-\begin{tabular}{@{}p{5.2cm}@{\hspace{0.3cm}}l@{}}
-\textbf{Mã đề tài:} & M8 \\[6pt]
-\textbf{Sinh viên thực hiện:} & Đinh Xuân Huy \\[6pt]
-\textbf{Mã số sinh viên:} & 23110102 \\[6pt]
-\textbf{Phân nhóm:} & Đa nhiệm \\[6pt]
-\textbf{Dữ liệu:} & CIFAR-10 \\[6pt]
-\textbf{Lớp học phần:} & Trí tuệ nhân tạo cho IoT \\[6pt]
-\textbf{Giảng viên hướng dẫn:} & \dotfill \\[6pt]
-\textbf{Năm học:} & 2026--2027 \\
+% ---------------------------------------------------------------------
+%  Khối thông tin
+% ---------------------------------------------------------------------
+\begin{tabular}{@{}p{4.8cm}@{\hspace{0.25cm}}l@{}}
+\textbf{Mã đề tài:}            & M8 \\[3.5pt]
+\textbf{Sinh viên thực hiện:}  & Đinh Xuân Huy \\[3.5pt]
+\textbf{Mã số sinh viên:}      & 23110102 \\[3.5pt]
+\textbf{Phân nhóm:}            & Đa nhiệm \\[3.5pt]
+\textbf{Dữ liệu:}              & CIFAR-10 \\[3.5pt]
+\textbf{Lớp học phần:}         & Trí tuệ nhân tạo cho IoT \\[3.5pt]
+\textbf{Giảng viên hướng dẫn:} & Hồ Nhựt Minh \\[3.5pt]
+\textbf{Năm học:}              & 2026--2027 \\
 \end{tabular}
 
 \vfill
 
-\begin{minipage}{0.86\textwidth}
+\begin{minipage}{0.84\textwidth}
 \begin{keybox}
 \small\centering
 \textbf{Báo cáo kỹ thuật bàn giao.} Toàn bộ số liệu Macro-F1, Accuracy, thời gian huấn luyện,
 số tham số và độ trễ suy luận trong báo cáo này được sinh trực tiếp từ \RRuns{} lượt huấn luyện
-thật trên môi trường được khai báo tại \secref{sec:env}. Mã nguồn, notebook, tệp cấu hình và
-chỉ mục split/subset đi kèm gói tái lập.
+khối chính và \RExtRuns{} lượt khối mở rộng, tất cả chạy thật trên môi trường được khai báo tại
+\secref{sec:env}. Mã nguồn, notebook, tệp cấu hình và chỉ mục split/subset đi kèm gói tái lập.
 \end{keybox}
 \end{minipage}
 
-\vspace{1.0cm}
+\vspace{0.5cm}
 {\sffamily\bfseries Thành phố Hồ Chí Minh, 2026\par}
-\vspace{0.3cm}
+\vspace{0.2cm}
+
+\end{spacing}
 \end{titlepage}

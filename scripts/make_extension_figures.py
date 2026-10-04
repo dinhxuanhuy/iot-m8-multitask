@@ -26,7 +26,8 @@ from m8.experiments import load_all_runs_multi, summarize_runs  # noqa: E402
 plt.rcParams.update(
     {
         "figure.dpi": 160,
-        "savefig.dpi": 200,
+        # 300 DPI cho đủ nét khi nhúng ở bề rộng \textwidth (xem make_figures.py).
+        "savefig.dpi": 300,
         "savefig.bbox": "tight",
         "font.size": 9.5,
         "axes.grid": True,

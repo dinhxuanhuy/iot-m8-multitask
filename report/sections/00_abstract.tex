@@ -39,7 +39,7 @@ $\DL^{(10\%)} \subset \DL^{(20\%)} \subset \DL^{(50\%)}$ và chỉ mục đầy 
 (iii)~một khối kết quả ghép cặp theo lần lặp với chênh lệch $\Delta_s$ và độ lệch chuẩn
 tường minh, kèm phân tích trường hợp không cải thiện;
 (iv)~cài đặt đầy đủ \emph{bốn} cấu hình mở rộng contrastive \cfg{E3}--\cfg{E6} (NT-Xent và
-SupCon) với siêu tham số $\lambda_c$ được khóa \emph{chỉ bằng validation} qua một quy trình
+SupCon) với siêu tham số $\lamc$ được khóa \emph{chỉ bằng validation} qua một quy trình
 hai bước tách bạch thông tin;
 (v)~các phép đo chi phí huấn luyện và suy luận được tách riêng, với kết luận về IoT được
 giới hạn đúng theo thiết bị đã đo.
@@ -47,6 +47,11 @@ giới hạn đúng theo thiết bị đã đo.
 \medskip
 \noindent\textbf{Kết quả phần mở rộng contrastive.}
 \RExtensionConclusion
+
+Thứ tự kết quả còn cho hai nhận xét có tính cấu trúc, đều nhất quán về dấu ở cả ba lần lặp:
+SupCon \emph{nghiêng hơn} NT-Xent ở cả hai điều kiện (có và không có nhánh xoay), và nhánh xoay
+\emph{bổ trợ} nhánh contrastive — thêm nhánh xoay lên trên một nhánh contrastive đã có vẫn cải
+thiện thêm, trong khi nhánh xoay chạy một mình thì không khác baseline.
 
 \medskip
 \noindent\textbf{Giới hạn.}

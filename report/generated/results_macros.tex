@@ -3,6 +3,7 @@
 % =====================================================================
 
 \newcommand{\RRuns}{27}
+\newcommand{\RExtRuns}{12}
 \newcommand{\RTotalHours}{8,26}
 \newcommand{\REnvPython}{3.12.10}
 \newcommand{\REnvTorch}{2.11.0+cu128}
@@ -61,6 +62,6 @@
 \newcommand{\RFindingCone}{Ở cả ba lần lặp, cấu hình \cfg{E2} tại mức 10\,\% nhãn đều cho Macro-F1 test cao hơn \cfg{E1} (chênh lệch trung bình +1,51 điểm phần trăm, độ lệch chuẩn 0,06).}
 \newcommand{\RFindingCtwo}{Mở rộng nguồn ảnh cho nhánh phụ: tại 10\,\% nhãn, \cfg{E2} cao hơn \cfg{E2-L} trung bình 1,57 điểm phần trăm (3/3 lần lặp dương); tại 20\,\% nhãn, \cfg{E2} cao hơn \cfg{E2-L} trung bình 1,25 điểm phần trăm (3/3 lần lặp dương); tại 50\,\% nhãn, \cfg{E2} cao hơn \cfg{E2-L} trung bình 0,32 điểm phần trăm (3/3 lần lặp dương).}
 \newcommand{\RFindingCthree}{Tỷ lệ thời gian huấn luyện \cfg{E2}/\cfg{E1} là 10\,\%: $\times$1,68, 20\,\%: $\times$1,82, 50\,\%: $\times$1,99 (cùng 100 epoch, khác số lượt ảnh được xử lý mỗi bước).}
-\newcommand{\RExtensionAnalysis}{Khối mở rộng contrastive chưa được chạy tại thời điểm sinh báo cáo; mục này chỉ mô tả giao thức.}
-\newcommand{\RExtensionConclusion}{Khối mở rộng contrastive chưa được chạy tại thời điểm sinh báo cáo; mục này chỉ mô tả giao thức.}
+\newcommand{\RExtensionAnalysis}{Kết quả khối mở rộng: tại 10\,\% nhãn, cấu hình mở rộng tốt nhất là \cfg{E6}, cao hơn \cfg{E1} trung bình 2,60 điểm phần trăm (3/3 lần lặp dương). Đối chiếu hai loại loss contrastive — 10\,\% nhãn: SupCon (\cfg{E6}) so với NT-Xent (\cfg{E5}) chênh +0,83 điểm phần trăm, nghiêng về \cfg{E6}; 10\,\% nhãn: SupCon (\cfg{E4}) so với NT-Xent (\cfg{E3}) chênh +0,88 điểm phần trăm, nghiêng về \cfg{E4}. Khi đã có nhánh contrastive — 10\,\% nhãn: thêm nhánh xoay (\cfg{E6} so với \cfg{E4}) chênh +0,52 điểm phần trăm về phía \cfg{E6}; 10\,\% nhãn: thêm nhánh xoay (\cfg{E5} so với \cfg{E3}) chênh +0,58 điểm phần trăm về phía \cfg{E5}.}
+\newcommand{\RExtensionConclusion}{Trong điều kiện đã khảo sát, cấu hình mở rộng \textbf{có} cải thiện so với \cfg{E1}: \cfg{E6} tại 10\,\% nhãn đạt chênh lệch trung bình +2,60 điểm phần trăm và dương ở cả 3/3 lần lặp. Tuy nhiên mức cải thiện này vẫn nằm trong cùng bậc độ lớn với độ lệch chuẩn giữa các lần lặp, nên chỉ được coi là bằng chứng thăm dò. Cần nhấn mạnh ba lần lặp chỉ cho bằng chứng ban đầu: không có tuyên bố ý nghĩa thống kê nào được đưa ra, và kết luận chỉ áp dụng cho kiến trúc, hai siêu lớp, các mức nhãn và giao thức đã khảo sát.}
 \newcommand{\RIncomplete}{}

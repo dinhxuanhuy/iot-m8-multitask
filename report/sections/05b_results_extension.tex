@@ -17,10 +17,10 @@ bước tách bạch về mặt thông tin:
 
 \begin{enumerate}[label=\textbf{B\arabic*.},leftmargin=1.4cm,itemsep=3pt]
   \item \textbf{Khảo sát chỉ trên validation.} Chạy \cfg{E4} và \cfg{E6} tại mức
-        $10\,\%$ nhãn, seed 42, với $\lambda_c \in \{0{,}05;\ 0{,}1;\ 0{,}25;\ 0{,}5;\ 1{,}0\}$.
+        $10\,\%$ nhãn, seed 42, với $\lamc \in \{0{,}05;\ 0{,}1;\ 0{,}25;\ 0{,}5;\ 1{,}0\}$.
         Script khảo sát (\code{scripts/sweep\_lambda\_c.py}) \textbf{không gọi} bước đánh giá
         test, nên kết quả test không thể ảnh hưởng tới quyết định.
-  \item \textbf{Khóa $\lambda_c$} theo một quy tắc khai báo trước: chọn \emph{một} giá trị dùng
+  \item \textbf{Khóa $\lamc$} theo một quy tắc khai báo trước: chọn \emph{một} giá trị dùng
         chung cho mọi cấu hình mở rộng (đúng như bảng 5 của đề cương) sao cho \emph{trung bình}
         Macro-F1 validation qua hai cấu hình khảo sát là lớn nhất. Quy tắc này được chọn vì mỗi
         cấu hình có cực trị riêng (xem \tabref{tab:lambda-sweep}); khóa theo một cấu hình duy
@@ -30,14 +30,14 @@ bước tách bạch về mặt thông tin:
 \input{generated/tab_lambda_sweep}
 
 \figref{fig:lambda-sweep} cho thấy toàn bộ đường khảo sát. Đáng lưu ý, cả hai hàm mất mát đều
-\emph{nhạy} với $\lambda_c$: chênh lệch giữa giá trị tốt nhất và xấu nhất trong lưới khảo sát là
+\emph{nhạy} với $\lamc$: chênh lệch giữa giá trị tốt nhất và xấu nhất trong lưới khảo sát là
 khoảng $2$ điểm phần trăm Macro-F1 validation. Điều này khẳng định việc chạy khảo sát là cần
-thiết, thay vì chọn $\lambda_c$ theo trực giác.
+thiết, thay vì chọn $\lamc$ theo trực giác.
 
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.92\textwidth]{../results/figures/fig08_lambda_sweep.png}
-  \caption{Khảo sát $\lambda_c$ \textbf{chỉ trên Macro-F1 validation} (40 epoch, mức
+  \caption{Khảo sát $\lamc$ \textbf{chỉ trên Macro-F1 validation} (40 epoch, mức
   $10\,\%$ nhãn, seed 42). Đường đứt dọc là giá trị được khóa. Tập test không được đánh giá
   trong bước này.}
   \label{fig:lambda-sweep}
@@ -46,7 +46,7 @@ thiết, thay vì chọn $\lambda_c$ theo trực giác.
 \subsection{Kết quả và đối chứng ghép cặp}
 \label{sec:results-ext-main}
 
-Sau khi khóa $\lambda_c$, bốn cấu hình được chạy tại mức nhãn \textbf{$10\,\%$} với ba lần lặp
+Sau khi khóa $\lamc$, bốn cấu hình được chạy tại mức nhãn \textbf{$10\,\%$} với ba lần lặp
 42, 43, 44 — tổng cộng $4 \times 3 = 12$ lượt huấn luyện 100 epoch. Mức $10\,\%$ được chọn vì
 đây là mức ưu tiên của đề cương (mục 4.2) và là mức mà phần bắt buộc cho thấy độ biến động lớn
 nhất giữa các cấu hình. Mỗi lượt vẫn giữ đúng giao thức của khối chính: 100 epoch, AdamW, chọn
@@ -64,10 +64,12 @@ tả. So sánh với \cfg{E1} vẫn hợp lệ vì \cfg{E1} có kết quả đ�
 \begin{figure}[htbp]
   \centering
   \includegraphics[width=\textwidth]{../results/figures/fig06_extension_macro_f1.png}
-  \caption{Macro-F1 trên $\Dtest$ của bảy cấu hình, trung bình ba lần lặp, so với mức $0{,}60$
-  của bộ phân loại luôn đoán Animal. Khối chính (\cfg{E1}, \cfg{E2-L}, \cfg{E2}) có kết quả ở
-  cả ba mức nhãn; khối mở rộng contrastive (\cfg{E3}--\cfg{E6}) chỉ có kết quả ở mức
-  $10\,\%$ nhãn.}
+  \caption{Macro-F1 trên $\Dtest$ của các cấu hình \emph{đã có kết quả}, trung bình qua các lần
+  lặp đã xong, so với mức $0{,}60$ của bộ phân loại luôn đoán Animal. Khối chính (\cfg{E1},
+  \cfg{E2-L}, \cfg{E2}) có kết quả ở cả ba mức nhãn; khối mở rộng contrastive chỉ được khảo sát
+  ở mức $10\,\%$ nhãn (xem \tabref{tab:extension-results}). Hình được sinh lại tự động bởi
+  \code{scripts/make\_extension\_figures.py}, nên số cột phản ánh đúng số cấu hình đã chạy
+  xong tại thời điểm sinh báo cáo.}
   \label{fig:extension-f1}
 \end{figure}
 
@@ -75,8 +77,9 @@ tả. So sánh với \cfg{E1} vẫn hợp lệ vì \cfg{E1} có kết quả đ�
   \centering
   \includegraphics[width=\textwidth]{../results/figures/fig07_extension_delta.png}
   \caption{Chênh lệch ghép cặp $\Delta_s$ so với \cfg{E1} của từng cấu hình mở rộng, mỗi điểm
-  là một lần lặp. Đường ngang là trung bình ba lần lặp. Giá trị dương nghĩa là cấu hình đó tốt
-  hơn baseline ở cùng ngân sách nhãn.}
+  là một lần lặp. Đường ngang là trung bình các lần lặp đã xong. Giá trị dương nghĩa là cấu hình
+  đó tốt hơn baseline ở cùng ngân sách nhãn. Nếu chưa có lượt mở rộng nào thì hình chỉ hiển thị
+  thông báo chưa có dữ liệu — đây là hình sinh tự động, không phải hình minh hoạ.}
   \label{fig:extension-delta}
 \end{figure}
 

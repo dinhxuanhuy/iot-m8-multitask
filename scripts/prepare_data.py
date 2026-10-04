@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from m8.config import ARTIFACT_DIR, LABEL_BUDGET, SPLIT_SEED  # noqa: E402
+from m8.config import ARTIFACT_DIR, LABEL_BUDGET, RESULTS_DIR, SPLIT_SEED  # noqa: E402
 from m8.data import audit_benchmark, build_benchmark, get_cifar10  # noqa: E402
 
 
@@ -43,6 +44,16 @@ def main() -> int:
     print("KẾT LUẬN:", "ĐẠT" if ok else "KHÔNG ĐẠT", flush=True)
     print(f"Đã lưu: {ARTIFACT_DIR / 'splits.json'}", flush=True)
     print(f"Đã lưu: {out}", flush=True)
+
+    # Đề cương mục 5.2 yêu cầu bàn giao "danh sách chỉ mục split/subset". Thư mục data/
+    # bị .gitignore (chứa CIFAR-10 tải về), nên sao chép chỉ mục đã đóng băng và kết quả
+    # kiểm tra che nhãn sang results/ để phần bàn giao có đủ. Bản trong results/ là bản
+    # sao CHÍNH XÁC của tệp mà mã nguồn dùng.
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(ARTIFACT_DIR / "splits.json", RESULTS_DIR / "split_indices.json")
+    shutil.copyfile(out, RESULTS_DIR / "benchmark_audit.json")
+    print(f"Đã sao chép sang gói bàn giao: {RESULTS_DIR / 'split_indices.json'}", flush=True)
+    print(f"Đã sao chép sang gói bàn giao: {RESULTS_DIR / 'benchmark_audit.json'}", flush=True)
     return 0 if ok else 1
 
 

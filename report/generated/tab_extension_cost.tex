@@ -1,1 +1,21 @@
-% (chưa có dữ liệu chi phí mở rộng)
+% Sinh tự động — scripts/make_report_data.py
+\begin{table}[htbp]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}l r r r r r@{}}
+    \toprule
+    Cấu hình & \makecell[r]{Tham số\\suy luận} & \makecell[r]{Rotation\\Head} & \makecell[r]{Projection\\Head} & \makecell[r]{Giây/epoch\\(mức 10\,\%)} & \makecell[r]{Lượt ảnh phụ\\mỗi epoch\\(mức 10\,\%)} \\
+    \midrule
+    \cfg{E1} & 11.169.858 & 0 & 0 & 3,4 & 0 \\
+    \cfg{E2-L} & 11.169.858 & 2.052 & 0 & 5,8 & 4.608 \\
+    \cfg{E2} & 11.169.858 & 2.052 & 0 & 5,8 & 4.608 \\
+    \cfg{E3} & 11.169.858 & 0 & 328.832 & 15,0 & 9.000 \\
+    \cfg{E4} & 11.169.858 & 0 & 328.832 & 15,1 & 9.000 \\
+    \cfg{E5} & 11.169.858 & 2.052 & 328.832 & 17,9 & 13.500 \\
+    \cfg{E6} & 11.169.858 & 2.052 & 328.832 & 18,2 & 13.500 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Chi phí của khối mở rộng. Số tham số suy luận \textbf{không} thay đổi so với khối chính vì cả Rotation Head lẫn Projection Head đều bị bỏ khi suy luận. \enquote{Lượt ảnh phụ} là tổng số lượt ảnh mà các nhánh phụ xử lý trong một epoch; đây là lý do định lượng khiến các cấu hình mở rộng chậm hơn \cfg{E1}.}
+  \label{tab:extension-cost}
+\end{table}

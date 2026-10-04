@@ -40,11 +40,15 @@ from m8.data import (  # noqa: E402
 plt.rcParams.update(
     {
         "figure.dpi": 160,
-        "savefig.dpi": 200,
+        # Ảnh CIFAR chỉ 32x32 px. DPI cao + interpolation="nearest" giữ cho các ô
+        # pixel sắc nét khi phóng to; nội suy làm mượt sẽ biến ảnh thành nhoè.
+        "savefig.dpi": 300,
         "savefig.bbox": "tight",
+        "savefig.pad_inches": 0.02,
         "font.size": 9,
         "axes.grid": False,
         "figure.autolayout": False,
+        "image.interpolation": "nearest",
     }
 )
 
@@ -52,32 +56,55 @@ ANIMAL_COLOR = "#2ca02c"
 VEHICLE_COLOR = "#1f77b4"
 
 
+def _show_cifar(ax, img, edgecolor, lw: float = 1.4) -> None:
+    """Hiển thị một ảnh CIFAR giữ nguyên khối pixel (nearest), viền màu siêu lớp."""
+    ax.imshow(np.asarray(img), interpolation="nearest")
+    ax.set_xticks([])
+    ax.set_yticks([])
+    for spine in ax.spines.values():
+        spine.set_edgecolor(edgecolor)
+        spine.set_linewidth(lw)
+
+
 def fig_dataset_samples(rng: np.random.Generator, per_class: int = 6) -> Path:
-    """Lưới ảnh theo 10 lớp gốc; nền khung thể hiện siêu lớp của lớp đó."""
+    """Lưới ảnh theo 10 lớp gốc: 5 hàng x 2 khối 6 cột.
+
+    Bố cục 10 hàng x 6 cột (bản cũ) cho tỉ lệ 0,53 — nhúng ở ``width=\\textwidth``
+    thành ~30 cm, VƯỢT chiều cao trang, nên LaTeX cắt mất hàng cuối, legend và cả
+    caption. Bố cục 5x12 giữ tỉ lệ ~2,2 nên vừa trang và còn chỗ cho caption.
+    """
     train, _ = get_cifar10(download=False)
     targets = np.asarray(train.targets)
-    fig, axes = plt.subplots(
-        len(CLASS_NAMES), per_class,
-        figsize=(per_class * 0.95, len(CLASS_NAMES) * 1.12),
+    half = len(CLASS_NAMES) // 2          # 5 hàng
+    ncols = per_class * 2 + 1             # 13 cột, cột giữa là đệm cho nhãn khối phải
+
+    cell = 0.60
+    # Chừa một dải ở đáy cho legend; nếu để axes tràn xuống sát đáy thì legend sẽ
+    # ĐÈ LÊN hàng ảnh cuối (lỗi đã gặp khi legend neo ở y âm).
+    fig = plt.figure(figsize=(ncols * cell, half * cell + 1.05))
+    gs = fig.add_gridspec(
+        half, ncols,
+        width_ratios=[1] * per_class + [1.9] + [1] * per_class,
+        wspace=0.10, hspace=0.10,
+        left=0.004, right=0.996, top=0.945, bottom=0.135,
     )
-    for row, cls in enumerate(CLASS_NAMES):
-        is_animal = row in ANIMAL_CLASSES
-        color = ANIMAL_COLOR if is_animal else VEHICLE_COLOR
-        idx = np.flatnonzero(targets == row)
-        pick = rng.choice(idx, size=per_class, replace=False)
-        for col, i in enumerate(pick):
-            ax = axes[row, col]
-            ax.imshow(np.asarray(train[int(i)][0]))
-            ax.set_xticks([])
-            ax.set_yticks([])
-            for spine in ax.spines.values():
-                spine.set_edgecolor(color)
-                spine.set_linewidth(1.6)
-            if col == 0:
-                ax.set_ylabel(
-                    f"{cls}\n({row})", rotation=0, ha="right", va="center",
-                    fontsize=8, color=color, labelpad=22,
-                )
+
+    for row in range(half):
+        for block in (0, 1):
+            cls = row + block * half
+            offset = 0 if block == 0 else per_class + 1
+            color = ANIMAL_COLOR if cls in ANIMAL_CLASSES else VEHICLE_COLOR
+            idx = np.flatnonzero(targets == cls)
+            pick = rng.choice(idx, size=per_class, replace=False)
+            for col, i in enumerate(pick):
+                ax = fig.add_subplot(gs[row, offset + col])
+                _show_cifar(ax, train[int(i)][0], color)
+                if col == 0:
+                    ax.set_ylabel(
+                        f"{CLASS_NAMES[cls]}\n({cls})", rotation=0, ha="right", va="center",
+                        fontsize=7.5, color=color, labelpad=14,
+                    )
+
     handles = [
         Patch(facecolor="none", edgecolor=ANIMAL_COLOR, linewidth=1.6,
               label=f"Animal (nhãn mới 0): {', '.join(CLASS_NAMES[c] for c in ANIMAL_CLASSES)}"),
@@ -85,10 +112,10 @@ def fig_dataset_samples(rng: np.random.Generator, per_class: int = 6) -> Path:
               label=f"Vehicle (nhãn mới 1): {', '.join(CLASS_NAMES[c] for c in VEHICLE_CLASSES)}"),
     ]
     fig.legend(handles=handles, loc="lower center", ncol=1, frameon=False,
-               bbox_to_anchor=(0.5, -0.015), fontsize=8)
+               bbox_to_anchor=(0.5, 0.005), fontsize=8)
     fig.suptitle(
         f"Ảnh CIFAR-10 theo 10 lớp gốc ({per_class} ảnh mỗi lớp) và phép gộp hai siêu lớp của đề tài",
-        y=1.005, fontsize=10,
+        y=0.99, fontsize=10,
     )
     out = FIGURES_DIR / "figA1_dataset_samples.png"
     fig.savefig(out)
@@ -186,50 +213,45 @@ def fig_views(train, bench, rng: np.random.Generator) -> Path:
         a = t.detach().cpu().numpy().transpose(1, 2, 0)
         return np.clip(a * 0.5 + 0.5, 0, 1)
 
-    fig = plt.figure(figsize=(13.5, 3.4))
-    gs = fig.add_gridspec(1, 8, wspace=0.08)
+    cell = 2.55
+    # 2 hàng x 4 cột (thay vì 1 hàng x 8 cột): mỗi panel rộng gấp đôi nên ảnh 32x32
+    # nhìn rõ hơn hẳn. Hàng 1 = các view nguồn, hàng 2 = bốn phép xoay.
+    fig = plt.figure(figsize=(4 * cell + 0.4, 2 * cell + 1.55))
+    gs = fig.add_gridspec(2, 4, wspace=0.07, hspace=0.26,
+                          left=0.008, right=0.992, top=0.905, bottom=0.125)
 
-    ax = fig.add_subplot(gs[0, 0])
-    ax.imshow(np.asarray(pil))
-    ax.set_title("Ảnh gốc", fontsize=9)
-    ax.set_xticks([]); ax.set_yticks([])
-    for s in ax.spines.values():
-        s.set_edgecolor("black"); s.set_linewidth(1.2)
+    panels = [
+        (np.asarray(pil), "Ảnh gốc", "black", 1.2),
+        (to_disp(lab_view), "Nhánh phân loại\n(crop + flip)", "black", 1.0),
+        (to_disp(con1), "Contrastive\nview 1", "black", 1.0),
+        (to_disp(con2), "Contrastive\nview 2", "black", 1.0),
+    ]
+    panels += [
+        (to_disp(rot_views[k]), f"Nhánh xoay\nk = {k}", "#C55A11", 1.3) for k in range(4)
+    ]
 
-    ax = fig.add_subplot(gs[0, 1])
-    ax.imshow(to_disp(lab_view))
-    ax.set_title("Nhánh phân loại\n(crop + flip)", fontsize=8.5)
-    ax.set_xticks([]); ax.set_yticks([])
-
-    ax = fig.add_subplot(gs[0, 2])
-    ax.imshow(to_disp(con1))
-    ax.set_title("Contrastive\nview 1", fontsize=8.5)
-    ax.set_xticks([]); ax.set_yticks([])
-
-    ax = fig.add_subplot(gs[0, 3])
-    ax.imshow(to_disp(con2))
-    ax.set_title("Contrastive\nview 2", fontsize=8.5)
-    ax.set_xticks([]); ax.set_yticks([])
-
-    for k in range(4):
-        ax = fig.add_subplot(gs[0, 4 + k])
-        ax.imshow(to_disp(rot_views[k]))
-        ax.set_title(f"Nhánh xoay\nk = {k}", fontsize=8.5)
-        ax.set_xticks([]); ax.set_yticks([])
+    for pos, (arr, title, edge, lw) in enumerate(panels):
+        ax = fig.add_subplot(gs[pos // 4, pos % 4])
+        # nearest: giữ nguyên khối pixel 32x32, không nội suy làm mượt
+        ax.imshow(arr, interpolation="nearest")
+        ax.set_title(title, fontsize=9)
+        ax.set_xticks([])
+        ax.set_yticks([])
         for s in ax.spines.values():
-            s.set_edgecolor("#C55A11"); s.set_linewidth(1.3)
+            s.set_edgecolor(edge)
+            s.set_linewidth(lw)
 
     fig.suptitle(
         f"Các loại view của cùng một ảnh — ảnh đầu tiên của $D_L$ tại mức 10 % nhãn, seed 42 "
         f"(lớp gốc: {CLASS_NAMES[original]})",
-        y=1.08, fontsize=9.5,
+        y=0.985, fontsize=10,
     )
     fig.text(
-        0.5, -0.04,
+        0.5, 0.012,
         "Nhánh phân loại dùng RandomCrop + RandomHorizontalFlip; hai view contrastive dùng tăng cường mạnh "
         "độc lập (crop, flip, color jitter, grayscale); nhánh xoay dùng ảnh gốc 32×32 không cắt và "
         "xoay 90k độ ngược chiều kim đồng hồ.",
-        ha="center", va="top", fontsize=8.5,
+        ha="center", va="bottom", fontsize=9,
     )
     out = FIGURES_DIR / "figA3_views.png"
     fig.savefig(out)

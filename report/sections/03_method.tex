@@ -96,7 +96,7 @@ $L_2$, nhiệt độ $\tau_{\mathrm{NT}}$, phép tăng cường ảnh, kích th�
 Head. Với $2N$ view trong một minibatch và $j(i)$ là view còn lại của cùng ảnh:
 
 \begin{equation}
-  L_{\mathrm{NT\text{-}Xent}}
+  \Lntxent
   = \frac{1}{2N}\sum_{i=1}^{2N} -\log
     \frac{\exp\!\bigl(s_{i,j(i)}/\tau_{\mathrm{NT}}\bigr)}
          {\sum_{k \neq i} \exp\!\bigl(s_{i,k}/\tau_{\mathrm{NT}}\bigr)},
@@ -112,13 +112,28 @@ học \emph{có} giám sát, không được gọi là một nhiệm vụ tự g
 $A(i) = \{a \neq i : \tilde{y}_a = \tilde{y}_i\}$ là tập positive của view $i$:
 
 \begin{equation}
-  L_{\mathrm{SupCon}}
+  \Lsupcon
   = \sum_{i=1}^{2N} \frac{-1}{|A(i)|}
     \sum_{a \in A(i)} \log
     \frac{\exp\!\bigl(s_{i,a}/\tau_{\mathrm{Sup}}\bigr)}
          {\sum_{k \neq i} \exp\!\bigl(s_{i,k}/\tau_{\mathrm{Sup}}\bigr)}.
   \label{eq:supcon}
 \end{equation}
+
+\paragraph{Hàm mục tiêu đầy đủ của bốn cấu hình mở rộng.}
+Ký hiệu $\Lcon$ là số hạng contrastive dùng ở cấu hình đang xét: $\Lcon = \Lntxent$ với
+\cfg{E3} và \cfg{E5}, $\Lcon = \Lsupcon$ với \cfg{E4} và \cfg{E6}. Khi đó hàm mục tiêu là
+
+\begin{align}
+  L^{(\mathrm{E3})} = L^{(\mathrm{E4})} &= \Lsup + \lamc \Lcon, \label{eq:ext-norot}\\
+  L^{(\mathrm{E5})} = L^{(\mathrm{E6})} &= \Lsup + \lamrot \Lrot + \lamc \Lcon, \label{eq:ext-rot}
+\end{align}
+
+trong đó \eqref{eq:ext-norot} ứng với hai cấu hình \emph{không} có nhánh xoay (\cfg{E3},
+\cfg{E4}) và \eqref{eq:ext-rot} ứng với hai cấu hình có đủ cả ba nhánh (\cfg{E5}, \cfg{E6}).
+Hệ số $\lamrot = 0{,}5$ giữ nguyên như khối chính; $\lamc$ dùng chung cho cả bốn cấu hình và
+được khóa bằng Macro-F1 \emph{validation} trước khi đánh giá test (\secref{sec:results-ext-lambda}).
+Bảng~\ref{tab:extensions} ghi rõ nguồn ảnh của từng số hạng.
 
 \paragraph{Kiến trúc Projection Head.}
 Hai lớp tuyến tính $512 \to 512 \to \dim_{\mathrm{proj}}$ với BatchNorm và ReLU ở lớp ẩn

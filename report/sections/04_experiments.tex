@@ -107,9 +107,9 @@ Không được lựa chọn $\lam$ hay cấu hình dựa trên kết quả test
 
 \paragraph{Quy trình khóa siêu tham số của phần mở rộng.}
 Khối mở rộng contrastive \cfg{E3}--\cfg{E6} có thêm ba siêu tham số phải khóa trước khi đánh giá
-test: nhiệt độ SupCon ($0{,}1$), nhiệt độ NT-Xent ($0{,}2$) và hệ số $\lambda_c$. Hai nhiệt độ và
+test: nhiệt độ SupCon ($0{,}1$), nhiệt độ NT-Xent ($0{,}2$) và hệ số $\lamc$. Hai nhiệt độ và
 chiều Projection Head ($128$) được chốt theo giá trị chuẩn của tài liệu
-gốc~\cite{chen2020simclr,khosla2020supcon}; riêng $\lambda_c$ được chọn bằng \textbf{Macro-F1
+gốc~\cite{chen2020simclr,khosla2020supcon}; riêng $\lamc$ được chọn bằng \textbf{Macro-F1
 validation} qua một script \emph{không có} bước đánh giá test (\secref{sec:results-ext-lambda}).
 Quy tắc chọn được khai báo trước khi chạy để tránh điều chỉnh giao thức sau khi đã thấy kết quả.
 

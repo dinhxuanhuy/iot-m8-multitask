@@ -1,0 +1,237 @@
+% =====================================================================
+%  BÁO CÁO KỸ THUẬT — ĐỀ TÀI M8
+%  Học đa nhiệm trên CIFAR-10: phân loại siêu lớp kết hợp dự đoán góc xoay
+%  Biên dịch: tectonic -X compile main.tex     (hoặc: xelatex main.tex)
+% =====================================================================
+\documentclass[11pt,a4paper]{article}
+
+% ---------- Ngôn ngữ và font (XeLaTeX / LuaLaTeX) ----------
+% Bản Linux dùng STIX Two Text thay cho Times New Roman (Times New Roman là font
+% Windows, không có trên Linux). STIX là thiết kế họ Times nên bám sát quy định
+% trình bày học thuật Việt Nam, và hợp với STIX Two Math dùng cho công thức.
+%
+% Đã kiểm chứng bằng cách đọc trực tiếp bảng cmap của từng file font: đủ 91/91 ký tự
+% có dấu dùng trong báo cáo, ở cả 4 mặt chữ (Regular/Bold/Italic/BoldItalic).
+%
+% Font được ĐÓNG GÓI KÈM trong report/assets/fonts/ và nạp bằng Path=, nên build
+% được trên máy KHÔNG cài sẵn các font này. Vì Path= là đường dẫn tương đối, PHẢI
+% biên dịch với thư mục làm việc là report/ (xem README mục 4).
+%
+% CẢNH BÁO: KHÔNG thay bằng Noto Serif / Noto Sans / Cantarell / Adwaita Sans —
+% chúng là VARIABLE FONT và làm xdvipdfmx báo lỗi "Invalid font: -1".
+% Caladea / Nimbus Roman / C059 thì THIẾU 59–62 ký tự tiếng Việt.
+\usepackage{fontspec}
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+\setotherlanguage{english}
+
+\setmainfont{STIXTwoText}[
+  Path           = assets/fonts/stix/,
+  Extension      = .otf,
+  UprightFont    = *-Regular,
+  BoldFont       = *-Bold,
+  ItalicFont     = *-Italic,
+  BoldItalicFont = *-BoldItalic,
+]
+\setsansfont{Carlito}[
+  Path           = assets/fonts/carlito/,
+  Extension      = .ttf,
+  UprightFont    = *-Regular,
+  BoldFont       = *-Bold,
+  ItalicFont     = *-Italic,
+  BoldItalicFont = *-BoldItalic,
+]
+\setmonofont{LiberationMono}[
+  Path           = assets/fonts/mono/,
+  Extension      = .ttf,
+  UprightFont    = *-Regular,
+  BoldFont       = *-Bold,
+  ItalicFont     = *-Italic,
+  BoldItalicFont = *-BoldItalic,
+  Scale          = 0.86,
+]
+
+% Công thức: STIX Two Math (cùng họ với font thân bài nên hài hoà tuyệt đối).
+\usepackage{unicode-math}
+\setmathfont{STIXTwoMath-Regular}[
+  Path      = assets/fonts/stix/,
+  Extension = .otf,
+]
+
+% ---------- Giãn dòng cho tiếng Việt ----------
+% Tiếng Việt có dấu chồng hai tầng (ẫ ộ ự ỡ). Với giãn dòng đơn, dấu của dòng dưới
+% ĐỤNG vào dòng trên và bị cắt cụt khi in — trông như "mất dấu". Chuẩn trình bày
+% học thuật Việt Nam quy định giãn dòng 1,5. Ở đây dùng 1,25 để cân bằng giữa
+% chất lượng dấu và giới hạn 15–25 trang của đề cương.
+% (\setstretch thuộc gói setspace, nên PHẢI đặt SAU \usepackage{setspace}.)
+
+% ---------- Trang và bố cục ----------
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.8cm,right=2.3cm,headsep=0.6cm]{geometry}
+\usepackage{fancyhdr}
+\usepackage{setspace}
+\setstretch{1.25}
+\usepackage{parskip}
+\usepackage{microtype}
+\usepackage{ragged2e}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{makecell}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,backgrounds,shapes.geometric}
+% unicode-math đã nạp ký hiệu toán; không dùng amssymb để tránh trùng lệnh \eth
+\usepackage{amsmath}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+% csquotes không có style "vietnamese"; mặc định khi đó \enquote cho ra dấu ? vì
+% glyph dấu ngoặc kép không được ánh xạ. Chọn style english để \enquote ra “ ”.
+\usepackage[autostyle=true,style=english]{csquotes}
+\usepackage[hidelinks,unicode]{hyperref}
+
+% ---------- Ngưỡng tràn dòng chặt hơn mặc định ----------
+% Cho phép giãn cách từ hơi rộng hơn để tránh Overfull \hbox trong bảng và danh mục.
+\tolerance=2000
+\emergencystretch=2em
+\hbadness=3000
+\vbadness=3000
+\hfuzz=0.5pt
+
+% ---------- Bảng màu ----------
+\definecolor{m8blue}{HTML}{1F4E79}
+\definecolor{m8teal}{HTML}{0F7B6C}
+\definecolor{m8orange}{HTML}{C55A11}
+\definecolor{m8gray}{HTML}{595959}
+\definecolor{m8light}{HTML}{F2F5F8}
+\definecolor{m8green}{HTML}{2C7A3F}
+\definecolor{m8red}{HTML}{B03A2E}
+% ---------- Màu nhận diện HCMUTE (lấy trực tiếp từ huy hiệu trường) ----------
+% PHẢI trùng khớp với report/main.tex — hai file main dùng chung trang bìa.
+\definecolor{hcmuteblue}{HTML}{283090}
+\definecolor{hcmutered}{HTML}{E81820}
+\definecolor{hcmutegray}{HTML}{4A4A4A}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=m8blue,
+  citecolor=m8teal,
+  urlcolor=m8orange,
+  pdftitle={Hoc da nhiem tren CIFAR-10: phan loai sieu lop ket hop du doan goc xoay},
+  pdfauthor={Dinh Xuan Huy}
+}
+
+% ---------- Tiêu đề / chú thích ----------
+\captionsetup{font=small,labelfont={bf,color=m8blue},justification=justified,singlelinecheck=false}
+\captionsetup[table]{skip=6pt}
+\captionsetup[figure]{skip=6pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape Trí tuệ nhân tạo cho IoT — Đề tài M8}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[C]{\small\thepage}\renewcommand{\headrulewidth}{0pt}}
+
+% ---------- Định nghĩa hộp ----------
+\newtcolorbox{keybox}[1][]{
+  colback=m8light, colframe=m8blue, boxrule=0.6pt, arc=2pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt, #1
+}
+\newtcolorbox{warnbox}[1][]{
+  colback=orange!6, colframe=m8orange, boxrule=0.6pt, arc=2pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt, #1
+}
+\newtcolorbox{resbox}[1][]{
+  colback=green!5, colframe=m8green, boxrule=0.6pt, arc=2pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt, #1
+}
+\newtcolorbox{limbox}[1][]{
+  colback=gray!7, colframe=m8gray, boxrule=0.6pt, arc=2pt,
+  left=8pt, right=8pt, top=6pt, bottom=6pt, #1
+}
+
+% ---------- Đoạn mã ----------
+\lstdefinestyle{m8style}{
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{m8blue}\bfseries,
+  commentstyle=\color{m8green}\itshape,
+  stringstyle=\color{m8orange},
+  numbers=left, numberstyle=\tiny\color{m8gray}, numbersep=8pt,
+  frame=single, framerule=0.4pt, rulecolor=\color{m8gray!60},
+  backgroundcolor=\color{gray!4},
+  breaklines=true, breakatwhitespace=true, tabsize=4,
+  showstringspaces=false, captionpos=b, language=Python,
+}
+\lstset{style=m8style}
+
+% ---------- Lệnh dùng chung ----------
+\newcommand{\cfg}[1]{\textsc{#1}}
+\newcommand{\DL}{D_{\mathrm{L}}}
+\newcommand{\DU}{D_{\mathrm{U}}}
+\newcommand{\Dtrain}{D_{\mathrm{train}}}
+\newcommand{\Dval}{D_{\mathrm{val}}}
+\newcommand{\Dtest}{D_{\mathrm{test}}}
+\newcommand{\Lsup}{L_{\mathrm{sup}}}
+\newcommand{\Lrot}{L_{\mathrm{rot}}}
+% Loss mở rộng (E3--E6) — phải TRÙNG với report/main.tex.
+\newcommand{\Lntxent}{L_{\mathrm{NT\text{-}Xent}}}
+\newcommand{\Lsupcon}{L_{\mathrm{SupCon}}}
+\newcommand{\Lcon}{L_{\mathrm{con}}}
+\newcommand{\lamrot}{\lambda_{\mathrm{rot}}}
+\newcommand{\lamc}{\lambda_{\mathrm{c}}}
+\newcommand{\lam}{\lambda}
+\newcommand{\enc}{f_{\theta}}
+\newcommand{\gsup}{g_{\mathrm{sup}}}
+\newcommand{\grot}{g_{\mathrm{rot}}}
+\newcommand{\norm}{\mathcal{N}}
+\newcommand{\code}[1]{\texttt{\small #1}}
+\newcommand{\figref}[1]{Hình~\ref{#1}}
+\newcommand{\tabref}[1]{Bảng~\ref{#1}}
+\newcommand{\secref}[1]{mục~\ref{#1}}
+\newcommand{\eqrefv}[1]{công thức~\eqref{#1}}
+
+% Số liệu thực nghiệm do scripts/make_report_data.py sinh ra
+\input{generated/results_macros}
+
+\begin{document}
+\justifying
+
+\input{sections/00_titlepage}
+\input{sections/00_abstract}
+
+\clearpage
+\tableofcontents
+\listoffigures
+\listoftables
+\clearpage
+
+\input{sections/01_introduction}
+\input{sections/02_data}
+\input{sections/03_method}
+\input{sections/04_experiments}
+\input{sections/05_results}
+\input{sections/05b_results_extension}
+\input{sections/06_discussion}
+\input{sections/07_iot}
+\input{sections/08_conclusion}
+\input{sections/09_appendix}
+
+\clearpage
+% Tiêu đề mục tài liệu tham khảo theo quy ước tiếng Việt (polyglossia chỉ có tên ngắn).
+\renewcommand{\refname}{Tài liệu tham khảo}
+\phantomsection
+\addcontentsline{toc}{section}{Tài liệu tham khảo}
+\begin{thebibliography}{99}
+% Sinh từ scripts/make_report_data.py — nội dung nằm trong generated/bibliography_items.tex
+{\footnotesize\input{generated/bibliography_items}}
+\end{thebibliography}
+
+\end{document}

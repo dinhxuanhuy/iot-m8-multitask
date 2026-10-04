@@ -22,7 +22,9 @@ from m8.experiments import load_all_runs, summarize_runs  # noqa: E402
 plt.rcParams.update(
     {
         "figure.dpi": 160,
-        "savefig.dpi": 200,
+        # 300 DPI: ở bề rộng \textwidth (15,9 cm), hình cần >= ~1880 px để không bị
+        # mờ khi in. Với 200 DPI, nhiều hình chỉ đạt 190-270 DPI hiệu dụng.
+        "savefig.dpi": 300,
         "savefig.bbox": "tight",
         "font.size": 10,
         "axes.grid": True,

@@ -3,9 +3,18 @@
 \label{sec:results}
 % =====================================================================
 
-Trong phần này, mọi giá trị số đều được đọc trực tiếp từ các tệp
-\code{results/checkpoints/*.json} do quá trình huấn luyện sinh ra. Không có giá trị nào được
-nhập bằng tay.
+Các \emph{chỉ số kết quả} trong phần này được sinh tự động từ
+\code{results/checkpoints/*.json} (khối chính) và \code{results/checkpoints\_ext/*.json} (khối
+mở rộng) do quá trình huấn luyện sinh ra, rồi tổng hợp bằng \code{scripts/make\_report\_data.py}.
+Không có chỉ số nào được nhập bằng tay.
+
+Cần phân biệt rõ hai loại giá trị: (i)~\emph{chỉ số kết quả} — Macro-F1, Accuracy, độ lệch
+chuẩn, chênh lệch ghép cặp, thời gian huấn luyện, số tham số, độ trễ — đều đọc từ JSON/CSV do
+lần chạy thật sinh ra; (ii)~\emph{hằng số giao thức và kiến trúc} — phép chia dữ liệu, số tham
+số từng tầng, siêu tham số optimizer — được viết trong \code{make\_report\_data.py} theo
+\code{src/m8/config.py}. Các hằng số ở nhóm (ii) hiện khớp \code{config.py} và
+\code{results/self\_test.json}, nhưng vì không đọc lại từ JSON nên nếu \code{config.py} đổi thì
+bảng sẽ không tự phát hiện.
 
 \subsection{Khối thực nghiệm chính}
 \label{sec:results-main}
@@ -67,6 +76,12 @@ checkpoint tốt nhất và mức suy giảm về cuối quá trình.
 \subsection{Chỉ số từng lớp và phân tích lỗi}
 \label{sec:results-perclass}
 
+\tabref{tab:per-class-10} và \tabref{tab:per-class-50} trình bày precision, recall và F1 của
+từng siêu lớp tại hai mức nhãn. Điểm đáng chú ý: \emph{Vehicle} luôn yếu hơn \emph{Animal} ở
+mọi cấu hình và mọi mức nhãn, và \cfg{E2} cải thiện Vehicle nhiều hơn Animal
+($+1{,}84$ so với $+1{,}17$ điểm phần trăm tại $10\,\%$ nhãn). Vì lợi ích tập trung ở lớp
+thiểu số nên Macro-F1 tăng nhiều hơn Accuracy — đúng lý do chọn Macro-F1 làm chỉ số chính.
+
 \input{generated/tab_per_class}
 
 \input{generated/tab_per_class_50}
@@ -80,6 +95,83 @@ checkpoint tốt nhất và mức suy giảm về cuối quá trình.
   \label{fig:confusion}
 \end{figure}
 
+\paragraph{Một số trường hợp dự đoán sai.}
+Ma trận nhầm lẫn cho biết \emph{số lượng} sai theo từng cặp lớp, nhưng không cho biết lỗi
+\emph{trông như thế nào}. Để bổ sung, các dự đoán test được xuất theo đúng chỉ mục gốc của
+CIFAR-10 bằng \code{scripts/run\_error\_analysis.py}, kèm logits và xác suất softmax; từ đó
+\code{scripts/make\_error\_figure.py} chọn ra các ca sai tiêu biểu.
+
+\IfFileExists{../results/figures/fig09_misclassified_L10.png}{%
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{../results/figures/fig09_misclassified_L10.png}
+  \caption{Các trường hợp dự đoán sai trên $\Dtest$ ở mức $10\,\%$ nhãn, seed 42, cho ba cấu
+  hình của khối đối chứng chính. Mỗi hàng lấy sáu ảnh, chọn \emph{trải đều} từ ca \emph{sai
+  nhưng rất tự tin} tới ca \emph{sát nước}, nên hình cho thấy cả lỗi hệ thống lẫn các ca ranh
+  giới. Trên mỗi ô: chỉ mục ảnh trong tập test, nhãn thật $\rightarrow$ nhãn mô hình đoán, và độ
+  tự tin của dự đoán sai đó. Số bên trái là \emph{tổng số ảnh sai} của cấu hình, giảm từ $636$
+  (\cfg{E1}) và $645$ (\cfg{E2-L}) xuống $482$ (\cfg{E2}). Ảnh giữ nguyên $32\times32$ px với
+  nội suy \code{nearest}. Xu hướng lặp lại gồm hai nhóm: (a)~phương tiện bị đoán thành Animal
+  (ô tô cũ, tàu, thuyền) và (b)~động vật nhỏ hoặc bị khuất trong bối cảnh có phương tiện (chim
+  đậu trên dây điện hay lan can, thú cưng trên ghế) bị đoán thành Vehicle. Nhóm (b) đúng với
+  loại sai số đã thấy ở ma trận nhầm lẫn. Nguồn của ba lượt này được nói rõ ở đoạn dưới.}
+  \label{fig:misclassified}
+\end{figure}
+}{\textit{(Hình các trường hợp dự đoán sai chưa được sinh: chạy
+\code{scripts/run\_error\_analysis.py} rồi \code{scripts/make\_error\_figure.py} để tạo
+\code{fig09\_misclassified\_L10.png}.)}}
+
+\paragraph{Một lưu ý về nguồn của hình này.}
+Ba lượt trong \figref{fig:misclassified} được \emph{chạy lại} trên máy dùng để phân tích (cùng
+giao thức, cùng seed, cùng 100 epoch) vì gói bàn giao không kèm tệp checkpoint của khối chính —
+xem hộp \enquote{Lưu ý về gói bàn giao} ở \secref{sec:appendix}. Chúng đạt Accuracy $0{,}9364$
+(\cfg{E1}), $0{,}9355$ (\cfg{E2-L}) và $0{,}9518$ (\cfg{E2}); so với bảng từng lượt ở
+\secref{sec:appendix-perrun} thì lệch cỡ $0{,}2$ điểm phần trăm, do khác biệt số học tích luỹ
+qua 100 epoch giữa hai GPU. Vì hình trả lời câu hỏi \emph{loại lỗi nào} chứ không phải
+\emph{chính xác bao nhiêu lỗi}, sai khác này không ảnh hưởng kết luận; mọi chỉ số định lượng
+trong báo cáo vẫn lấy từ bảng kết quả chính. Người đọc có tệp checkpoint gốc chỉ cần chạy lại
+hai lệnh ở trên là thu được con số khớp chính xác. Ba cấu hình mở rộng \cfg{E3} và \cfg{E4}
+cũng đã có dự đoán test kèm theo, huấn luyện và suy luận trên \emph{cùng} một GPU nên khớp
+tuyệt đối với bảng kết quả mở rộng.
+
+\paragraph{Dự đoán test theo chỉ mục để kiểm tra lại chỉ số.}
+Đề cương yêu cầu kèm dự đoán test theo chỉ mục để người đọc kiểm tra lại chỉ số. Mỗi lượt xuất ra
+một tệp \code{results/test\_predictions/<tag>.npz} gồm \code{test\_index} (0--9999, đúng thứ tự
+tập test chính thức, \emph{không} xáo trộn), \code{y\_true}, \code{y\_pred}, \code{logits} và
+\code{prob}. Các tệp này \textbf{được bàn giao} vì chỉ nặng khoảng $150$~KB mỗi lượt; ngược lại,
+checkpoint mô hình (~46~MB mỗi lượt) \textbf{không} kèm theo và đã bị \code{.gitignore} loại khỏi
+kho mã nguồn.
+
+Script tự tính lại Macro-F1 và Accuracy từ chính các dự đoán này rồi so với chỉ số đã ghi trong
+\code{<tag>.json}. Vì các lượt báo cáo được huấn luyện trên GPU còn bước kiểm tra có thể chạy trên
+CPU, dung sai được đo bằng \textbf{số ảnh bị lật nhãn} chứ không bằng đơn vị Macro-F1: một ngưỡng
+F1 cố định là đại lượng phụ thuộc thiết bị và không diễn giải được. Kết quả chạy lại thực tế:
+\cfg{E4} tái lập \emph{chính xác} (lệch $0$ ảnh, $\Delta\text{Macro-F1} = 0$), \cfg{E3} lệch đúng
+$1$ ảnh trên $10.000$ ($\Delta\text{Macro-F1} = 1{,}1\times10^{-4}$). Sai khác ở mức một ảnh là do
+số học dấu phẩy động giữa hai thiết bị, không phải do lỗi giao thức.
+
+Việc chỉ sinh được hình lỗi cho \cfg{E3} và \cfg{E4} là do \emph{checkpoint của khối chính
+(E1/E2-L/E2) không nằm trong gói bàn giao} (quá lớn). Người đọc muốn sinh hình cho khối chính chỉ
+cần chạy lại hai script trên với checkpoint có sẵn ở máy đã huấn luyện:
+\code{python scripts/run\_error\_analysis.py} rồi
+\code{python scripts/make\_error\_figure.py --configs E1 E2-L E2}.
+
+\subsection{Chẩn đoán nhánh phụ: Rotation Accuracy}
+\label{sec:results-rotdiag}
+
+Để giải thích \emph{vì sao} \cfg{E2-L} gần như không khác \cfg{E1}, cần biết nhánh phụ có thực
+sự được học hay không. \tabref{tab:rotation-diag} đo Rotation Accuracy trên $\Dval$, đánh giá
+đủ bốn phép xoay cho mỗi ảnh.
+
+\input{generated/tab_rotation_diag}
+
+Đây là bằng chứng định lượng quan trọng nhất của báo cáo: tại mức $10\,\%$ nhãn, \cfg{E2-L} chỉ
+đạt Rotation Accuracy $61$--$63\,\%$ (đoán bừa là $25\,\%$) — nhánh phụ \emph{có} học nhưng quá
+yếu để tạo ra biểu diễn hữu ích. Khi \cfg{E2} mở rộng kho ảnh cho nhánh xoay từ $4.500$ lên
+$45.000$ ảnh, Rotation Accuracy nhảy lên $78$--$79\,\%$, và đúng lúc đó Macro-F1 mới tăng
+($+1{,}51$ điểm phần trăm). Nói cách khác: nhánh phụ chỉ chuyển giao khi nó được học đủ tốt, và
+nó chỉ học đủ tốt khi có đủ ảnh.
+
 \subsection{Chi phí huấn luyện và suy luận}
 \label{sec:results-cost}
 
@@ -87,11 +179,13 @@ checkpoint tốt nhất và mức suy giảm về cuối quá trình.
 
 \input{generated/tab_inference_cost}
 
-\paragraph{Vì sao \cfg{E2} đắt hơn \cfg{E2-L} — và vì sao khoảng cách đó thu hẹp theo mức nhãn.}
-\tabref{tab:rotation-data-cost} đo riêng chi phí \emph{dựng view} của nhánh phụ. Ở mức
-$10\,\%$ nhãn, nguồn $\Dtrain$ gấp $10$ lần nguồn $\DL$ về số view mỗi epoch; ở mức $50\,\%$
-nhãn, tỷ lệ này chỉ còn $2$ lần. Đây là lý do định lượng cho việc \cfg{E2} đắt hơn \cfg{E2-L}
-rõ rệt khi ít nhãn.
+\paragraph{Chi phí dựng view của nhánh xoay.}
+\tabref{tab:rotation-data-cost} đo riêng chi phí \emph{dựng view} trên CPU. Cần đọc con số này
+kèm một lưu ý quan trọng: bảng đo theo giả định nhánh phụ duyệt hết tập nguồn mỗi epoch, nhưng
+trong mã nguồn $B_R$ được cắt về đúng $b_L$ (\secref{sec:loss}), nên số view \emph{thực dùng}
+mỗi epoch bằng $|\DL|$ ở cả \cfg{E2-L} và \cfg{E2}. Do đó chi phí dựng view thực tế của hai cấu
+hình này gần như bằng nhau, và tỷ lệ $10\times$ trong bảng là chi phí của kịch bản giả định nếu
+nhánh phụ duyệt trọn tập nguồn.
 
 \input{generated/tab_rotation_data_cost}
 
@@ -107,6 +201,14 @@ lý trên CPU được đo riêng và có giá trị \RPreprocessMs{}~ms/ảnh, 
 gian suy luận GPU; đây là yếu tố thường bị bỏ qua khi chỉ báo cáo \enquote{độ trễ mô hình}.
 
 \paragraph{So sánh chi phí học giữa ba cấu hình.}
-\tabref{tab:training-cost} cho thấy \cfg{E1} rẻ nhất, \cfg{E2-L} và \cfg{E2} đắt hơn do phải
-xử lý thêm một minibatch ở mỗi bước cập nhật. Cần lưu ý rằng mức tăng này không tỷ lệ với số
-epoch (cả ba cấu hình đều 100 epoch) mà tỷ lệ với số lượt ảnh được xử lý.
+\tabref{tab:training-cost} cho thấy \cfg{E1} rẻ nhất, còn \cfg{E2-L} và \cfg{E2} đắt hơn do phải
+xử lý thêm một minibatch ở mỗi bước cập nhật. Mức tăng không tỷ lệ với số epoch (cả ba cấu hình
+đều 100 epoch) mà tỷ lệ với số lượt ảnh được xử lý.
+
+Một điểm quan trọng và dễ suy luận sai: \textbf{\cfg{E2} và \cfg{E2-L} có chi phí huấn luyện
+gần như BẰNG NHAU} — tỷ lệ thời gian \cfg{E2}/\cfg{E2-L} là $1{,}006$ ở mức $10\,\%$ nhãn và
+$0{,}99996$ ở mức $50\,\%$. Nguyên nhân: số view của nhánh phụ mỗi epoch do kích thước $B_L$
+quyết định, \emph{không} do kích thước kho rút mẫu. Vì vậy việc mở rộng kho ảnh cho nhánh xoay
+từ $4.500$ lên $45.000$ ảnh gần như \emph{miễn phí} về thời gian huấn luyện. Đây là lập luận
+mạnh nhất cho \cfg{E2}: nó đạt $+1{,}51$ điểm phần trăm Macro-F1 so với \cfg{E1} mà chi phí suy
+luận giống hệt và chi phí huấn luyện tăng không đáng kể so với \cfg{E2-L}.

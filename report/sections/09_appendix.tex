@@ -71,33 +71,82 @@ D:\IOT
 |  |- make_figures.py         # sinh hinh cho bao cao
 |  |- make_extension_figures.py    # hinh khoi mo rong
 |  |- make_report_data.py     # sinh bang/macro LaTeX
+|  |- run_error_analysis.py   # du doan test theo chi muc + logits (muc 5.2)
+|  |- make_error_figure.py    # hinh cac truong hop du doan sai
+|  |- package_delivery.py     # dong goi checkpoint + MANIFEST co SHA-256
 |  |- verify_macros.py, verify_tables.py, verify_pdf.py, inventory.py
 |- notebooks/
 |  |- M8_CIFAR10_MultiTask.ipynb
+|  |- M8_Final_All.ipynb      # notebook cuoi cung, tong hop toan bo de tai
 |- results/
 |  |- checkpoints/*.json|*.pt # ket qua va checkpoint khoi chinh
 |  |- checkpoints_ext/*.json|*.pt  # ket qua khoi mo rong E3--E6
 |  |- summary.json            # tong hop khoi chinh
-|  |- summary_all.json        # tong hop gop ca hai khoi
+|  |- summary_all.json        # tong hop gop CA HAI khoi (chi khac summary.json khi
+|                             #   da co ket qua mo rong trong checkpoints_ext/)
 |  |- lambda_c_sweep.json     # khao sat lambda_c (chi validation)
-|  |- benchmark_audit.json    # ket qua kiem tra che nhan
+|  |- benchmark_audit.json    # ket qua kiem tra che nhan (ban sao tu data/artifacts/)
+|  |- split_indices.json      # DANH SACH CHI MUC split/subset da dong bang (3 MB)
 |  |- self_test.json, environment.json, inference_benchmark.json
 |  |- rotation_diagnostic.json, rotation_data_cost.json
-|  |- figures/*.png
+|  |- runs_table.csv, figures/*.png
+|  |- test_predictions/*.npz  # du doan test theo chi muc (de kiem tra lai chi so)
 |- report/                    # bao cao LaTeX nay
 \end{lstlisting}
+
+\begin{keybox}
+\textbf{Về checkpoint và gói bàn giao.} Đề cương §5.2 yêu cầu đóng gói checkpoint đã chọn bằng
+validation cho các lượt chính. Checkpoint nặng khoảng $46$~MB mỗi lượt (tổng $\sim1{,}4$~GB cho
+$39$ lượt), nên \textbf{không} đưa thẳng vào kho mã nguồn; \code{.gitignore} loại
+\code{results/checkpoints/}, \code{results/checkpoints\_ext/} và mọi tệp \code{*.pt}.
+
+Để vẫn thoả yêu cầu, kho mã nguồn kèm sẵn:
+
+\begin{itemize}[leftmargin=1.1cm,itemsep=2pt]
+  \item \code{results/test\_predictions/<tag>.npz} — dự đoán test \emph{theo đúng chỉ mục} gốc
+        $0$--$9999$, kèm \code{logits} và \code{prob} softmax. Mỗi tệp chỉ $\sim150$~KB nên
+        \textbf{được bàn giao}, đúng yêu cầu \enquote{kèm logits hoặc dự đoán test theo chỉ mục}.
+  \item \code{scripts/package\_delivery.py} — đóng gói checkpoint thành tệp riêng kèm
+        \code{MANIFEST.json} có băm SHA-256 của từng tệp. Script \emph{kiểm chứng lại chỉ số}
+        của mỗi checkpoint trước khi đóng gói: nạp lại, chạy trên $\Dtest$, so với chỉ số đã ghi
+        trong \code{<tag>.json}; dung sai đo bằng số ảnh bị lật.
+\end{itemize}
+
+Bản thân \emph{chỉ số} của mọi lượt chạy vẫn được bàn giao đầy đủ dưới dạng
+\code{results/runs\_table.csv} và \code{summary*.json}, nên mọi bảng trong báo cáo đều kiểm tra
+lại được. Muốn dựng lại checkpoint, chạy \code{scripts/run\_experiments.py} và
+\code{scripts/run\_extensions.py} như mục dưới; kết quả đã có sẽ được bỏ qua nên chỉ tốn thời
+gian cho phần còn thiếu.
+\end{keybox}
 
 \paragraph{Quy trình chạy lại từ đầu.}
 \begin{lstlisting}[language=bash,caption={Tái lập toàn bộ kết quả từ dữ liệu gốc.},label={lst:repro}]
 cd D:\IOT
 .venv\Scripts\python.exe scripts\prepare_data.py          # tai du lieu + dong bang split
 .venv\Scripts\python.exe scripts\self_test.py             # kiem tra ky thuat
-.venv\Scripts\python.exe scripts\run_experiments.py       # 27 luot huan luyen
+.venv\Scripts\python.exe scripts\run_experiments.py       # 27 luot khoi chinh
 .venv\Scripts\python.exe scripts\run_inference_benchmark.py
-.venv\Scripts\python.exe scripts\make_figures.py          # sinh hinh
+.venv\Scripts\python.exe scripts\run_rotation_diagnostic.py  # Rotation Accuracy
+.venv\Scripts\python.exe scripts\run_rotation_data_cost.py   # chi phi dung view
+.venv\Scripts\python.exe scripts\make_figures.py          # sinh hinh khoi chinh
+.venv\Scripts\python.exe scripts\run_error_analysis.py    # du doan test theo chi muc (logits)
+.venv\Scripts\python.exe scripts\make_error_figure.py     # hinh cac ca du doan sai
 .venv\Scripts\python.exe scripts\make_report_data.py      # sinh bang LaTeX
+.venv\Scripts\python.exe scripts\package_delivery.py --out delivery_m8 --zip  # dong goi
 cd report && tectonic -X compile main.tex                 # bien dich bao cao
 \end{lstlisting}
+
+\paragraph{Chạy khối mở rộng E3--E6.}
+Khối mở rộng có thêm hai bước khóa siêu tham số \emph{chỉ trên validation}:
+\begin{lstlisting}[language=bash,caption={Quy trình khối mở rộng, tách bạch thông tin với test.},label={lst:ext}]
+.venv\Scripts\python.exe scripts\sweep_lambda_c.py --epochs 40   # CHI validation
+.venv\Scripts\python.exe scripts\lock_lambda_c.py                # ap quy tac khoa
+.venv\Scripts\python.exe scripts\run_extensions.py               # 12 luot E3--E6
+.venv\Scripts\python.exe scripts\make_extension_figures.py       # hinh khoi mo rong
+.venv\Scripts\python.exe scripts\make_report_data.py             # sinh lai bang + macro
+\end{lstlisting}
+Script khảo sát \textbf{không} gọi bước đánh giá test, nên kết quả test không thể ảnh hưởng
+tới quyết định khóa $\lamc$.
 
 \paragraph{Tính xác định và khả năng tái lập.}
 Mọi nguồn ngẫu nhiên đều được ghim: seed chia split $2026$; seed lần lặp $42$, $43$, $44$ dùng
@@ -160,8 +209,9 @@ Danh sách đầy đủ các chỉ số của từng lượt chạy, ở dạng 
 \code{results/runs\_table.csv}. Tệp này chứa: tag lượt chạy, cấu hình, mức nhãn, lần lặp, epoch
 được chọn, Macro-F1 và Accuracy trên validation, Macro-F1 và Accuracy trên test, F1 và
 precision/recall của từng siêu lớp, thời gian huấn luyện, và số tham số suy luận/huấn luyện.
-Ma trận nhầm lẫn đầy đủ của từng lượt nằm trong tệp JSON tương ứng ở
-\code{results/checkpoints/}.
+Ma trận nhầm lẫn đầy đủ của từng lượt nằm trong trường \code{test.confusion} của tệp
+\code{results/checkpoints/<tag>.json} tương ứng (không kèm trong kho mã nguồn — xem hộp
+\enquote{Lưu ý về gói bàn giao} ở trên).
 
 \subsection{Đường học của toàn bộ lịch sử huấn luyện}
 \label{sec:appendix-history}

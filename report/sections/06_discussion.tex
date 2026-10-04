@@ -55,8 +55,9 @@ tăng chi phí lên đáng kể.
 
 \paragraph{Không dùng Early Stopping.}
 Quyết định bỏ Early Stopping để bảo đảm số bước cập nhật có giám sát giống nhau. Đánh đổi là
-một số lượt chạy có thể đã quá khớp (xem loss huấn luyện rất nhỏ ở cuối giai đoạn, ví dụ
-$L_{\mathrm{sup}} < 0{,}01$ ở epoch 100 tại mức $10\,\%$ nhãn), và checkpoint được chọn gần
+một số lượt chạy có thể đã quá khớp (xem loss huấn luyện rất nhỏ ở cuối giai đoạn: tại mức
+$10\,\%$ nhãn, \emph{phần lớn} các lượt có $L_{\mathrm{sup}} < 0{,}01$ ở epoch 100 — ngoại lệ
+là \code{E1\_L10\_s43} với $L_{\mathrm{sup}} \approx 0{,}0113$), và checkpoint được chọn gần
 cuối quá trình. Đây là hành vi nhất quán giữa các cấu hình, nhưng số liệu cuối cùng không phản
 ánh chất lượng tốt nhất mà cấu hình đó có thể đạt được dưới một chiến lược dừng khác.
 
@@ -84,18 +85,19 @@ bằng mã chứ không chỉ được ghi trong văn bản:
         cố định bằng validation.
 \end{itemize}
 
-\subsection{Vì sao contrastive learning không tự động giúp phân loại}
-\label{sec:disc-contrastive}
+\subsection{Vì sao lợi ích của contrastive không tự động}
 
-Khối mở rộng \cfg{E3}--\cfg{E6} cung cấp một đối chứng quan trọng cho trực giác thường gặp rằng
-\enquote{thêm học tự giám sát thì tốt hơn}. Có ít nhất bốn lý do khiến nhiệm vụ phụ contrastive
-không đương nhiên cải thiện nhiệm vụ phân loại siêu lớp:
+Khối mở rộng \cfg{E3}--\cfg{E6} kiểm chứng trực tiếp trực giác thường gặp rằng
+\enquote{thêm học tự giám sát thì tốt hơn}. Kết quả định lượng nằm ở \secref{sec:results-ext}
+và được tóm tắt ngay dưới đây; phần này nêu \emph{bốn cơ chế} điều tiết độ lớn của lợi ích đó,
+để tránh diễn giải kết quả như một quy luật chung:
 
 \begin{enumerate}[leftmargin=1.2cm,itemsep=3pt]
   \item \textbf{Mục tiêu khác nhau.} NT-Xent học bất biến trước \emph{tăng cường ảnh} (cắt, đổi
         màu, chuyển xám). Animal và Vehicle phân biệt nhau bằng \emph{hình dạng ngữ nghĩa}, mà
         tăng cường mạnh lại chính là thứ \emph{phá} thông tin cấp thấp hữu ích. Hai mục tiêu
-        không mâu thuẫn về nguyên tắc nhưng không trùng nhau.
+        không mâu thuẫn về nguyên tắc nhưng cũng không trùng nhau, nên lợi ích ròng phụ thuộc
+        vào việc tín hiệu nào chiếm ưu thế ở mức nhãn đang xét.
   \item \textbf{Encoder bị chia sẻ với hai mục tiêu cạnh tranh.} Vì $\enc$ là duy nhất cho mọi
         nhánh, gradient của loss contrastive có thể kéo encoder về vùng làm giảm chất lượng đặc
         trưng cho phân loại ngay ở giai đoạn đầu — khi đó gradient phân loại còn yếu vì chỉ có
@@ -110,12 +112,54 @@ không đương nhiên cải thiện nhiệm vụ phân loại siêu lớp:
         tín hiệu nếu \emph{bất biến mà chúng dạy được} trùng với bất biến mà nhiệm vụ chính cần.
 \end{enumerate}
 
+Một điểm phương pháp luận đáng nhấn mạnh: SupCon là học \emph{có} giám sát và chỉ được dùng
+$\DL$, nên nó \textbf{không} phải một nhiệm vụ tự giám sát và không được xếp cùng loại với
+NT-Xent khi diễn giải. Vì vậy bảng kết quả mở rộng tách hai nhóm này và bổ sung hai so sánh
+ghép cặp \cfg{E6}--\cfg{E5} và \cfg{E4}--\cfg{E3} để cô lập vai trò của \emph{loại} loss.
+
 \RExtensionAnalysis
 
-Một điểm phương pháp luận đáng nhấn mạnh: $\lambda_c$ của báo cáo này được chọn bằng
+Một điểm phương pháp luận đáng nhấn mạnh: $\lamc$ của báo cáo này được chọn bằng
 Macro-F1 \emph{validation} với một script không đánh giá test
-(\secref{sec:results-ext-lambda}). Nếu cho phép chọn $\lambda_c$ bằng test, kết quả của khối mở
+(\secref{sec:results-ext-lambda}). Nếu cho phép chọn $\lamc$ bằng test, kết quả của khối mở
 rộng sẽ trông tốt hơn một cách giả tạo. Đây là loại sai lệch mà đề cương yêu cầu phải tránh.
+
+\subsection{Đọc kết quả mở rộng: chọn đúng mục tiêu phụ, rồi mới tăng dữ liệu}
+\label{sec:disc-supcon}
+
+Kết quả ở \secref{sec:results-ext} đáng chú ý hơn mức một phép thử tuỳ chọn, và tạo thành một
+thứ tự khá rõ. Ở mức $10\,\%$ nhãn, cấu hình tốt nhất là \cfg{E6} (nhánh xoay \emph{và} SupCon),
+tiếp theo là \cfg{E4} (chỉ SupCon). Cả hai đều vượt \cfg{E2} — cấu hình khai thác $45{.}000$ ảnh
+của $\Dtrain$ cho nhánh xoay nhưng không có nhánh contrastive. Ba quan sát rút ra:
+
+\begin{enumerate}[leftmargin=1.2cm,itemsep=3pt]
+  \item \textbf{Loại mục tiêu phụ quan trọng hơn lượng dữ liệu bỏ thêm.} SupCon kéo các mẫu
+        \emph{cùng siêu lớp} lại gần nhau, tức bất biến nó học \emph{chính là} bất biến mà bộ
+        phân loại cần. NT-Xent chỉ học bất biến trước tăng cường ảnh, còn nhánh xoay chỉ học bất
+        biến trước góc quay — cả hai đều là mục tiêu \emph{khác} với ranh giới Animal/Vehicle.
+        Ở cùng điều kiện có hay không có nhánh xoay, SupCon đều nghiêng hơn NT-Xent
+        (\cfg{E6}--\cfg{E5} và \cfg{E4}--\cfg{E3}), và cả hai chênh lệch này đều dương ở $3/3$
+        lần lặp.
+  \item \textbf{Nhánh xoay và contrastive bổ trợ nhau, chứ không thay thế nhau.} Thêm nhánh
+        xoay \emph{lên trên} một nhánh contrastive đã có vẫn cải thiện thêm
+        (\cfg{E6}--\cfg{E4} và \cfg{E5}--\cfg{E3}), cũng dương ở $3/3$ lần lặp. Điều này đáng
+        chú ý vì nhánh xoay \emph{một mình} thì gần như không có tác dụng: \cfg{E2-L} (nhánh xoay
+        chỉ dùng $\DL$) không khác \cfg{E1}. Nói cách khác, giá trị của nhánh xoay chỉ hiện ra
+        khi đã có một tín hiệu phân loại đủ mạnh để bám vào.
+  \item \textbf{Kết quả này không phủ định giá trị của dữ liệu không nhãn nói chung}, mà chỉ
+        cho thấy trong giao thức đã khảo sát, việc dùng nhãn cho một mục tiêu phụ \emph{đúng}
+        (SupCon) mang lại nhiều hơn việc dùng thêm ảnh không nhãn cho một mục tiêu \emph{khác}
+        (NT-Xent, xoay). Muốn tách bạch hoàn toàn cần thêm cấu hình SupCon có \emph{cả}
+        $\Dtrain$ — nằm ngoài phạm vi đề tài.
+\end{enumerate}
+
+Hai giới hạn phải nói rõ. Thứ nhất, \cfg{E4} và \cfg{E6} vẫn là học \emph{có giám sát}: chúng
+dùng lại nhãn của $\DL$ cho một mục tiêu phụ, nên \emph{không} tiết kiệm nhãn so với \cfg{E1};
+chúng cải thiện chất lượng ở \emph{cùng} ngân sách nhãn. Đây là điểm khác căn bản so với
+\cfg{E2}, vốn khai thác thêm ảnh không nhãn. Thứ hai, các chênh lệch \cfg{E6}--\cfg{E4},
+\cfg{E6}--\cfg{E5} và \cfg{E5}--\cfg{E3} tuy nhất quán ở $3/3$ lần lặp nhưng chỉ cỡ nửa điểm phần
+trăm — cùng bậc với độ lệch chuẩn giữa các lần lặp, nên phải đọc như bằng chứng thăm dò chứ
+không phải kết luận.
 
 \subsection{Hướng cải thiện}
 \label{sec:disc-next}

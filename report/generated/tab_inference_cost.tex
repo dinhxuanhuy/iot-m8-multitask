@@ -15,6 +15,6 @@
     Dung lượng tệp trọng số suy luận đo được & \RParamInferenceFileMiB{} MiB \\
     \bottomrule
   \end{tabular}
-  \caption{Chi phí tham số của mô hình tại cấu hình \secref{sec:arch}. Rotation Head chỉ tồn tại trong giai đoạn huấn luyện; khi suy luận chỉ cần encoder và Superclass Head. Dung lượng tệp được đo bằng cách lưu riêng trọng số suy luận, không gộp optimizer state.}
+  \caption{Chi phí tham số của mô hình tại cấu hình \secref{sec:arch}. Đây là đại lượng \emph{xác định} (đếm trên kiến trúc), \textbf{không} phải trung bình qua nhiều lần chạy. Rotation Head chỉ tồn tại trong giai đoạn huấn luyện; khi suy luận chỉ cần encoder và Superclass Head. Dung lượng tệp được đo bằng cách lưu riêng trọng số suy luận, không gộp optimizer state.}
   \label{tab:inference-cost}
 \end{table}

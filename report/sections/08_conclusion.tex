@@ -25,7 +25,16 @@ phân loại là do chất lượng đặc trưng học được, không do thay
 
 Khối mở rộng \cfg{E3}--\cfg{E6} đã được triển khai đầy đủ theo bảng 5 của đề cương (hai hàm
 mất mát NT-Xent và SupCon, Projection Head chỉ dùng khi huấn luyện) và chạy với siêu tham số
-$\lambda_c$ khóa bằng validation. \RExtensionConclusion
+$\lamc$ khóa bằng validation. \RExtensionConclusion
+
+Ngoài mức cải thiện tổng thể, thứ tự kết quả cho hai nhận xét có tính cấu trúc, đều nhất quán ở
+cả ba lần lặp. Thứ nhất, \emph{SupCon nghiêng hơn NT-Xent} ở cả hai điều kiện — khi có và khi
+không có nhánh xoay — cho thấy ở ngân sách nhãn thấp, dùng nhãn cho một mục tiêu phụ \emph{đúng}
+hiệu quả hơn dùng thêm ảnh không nhãn cho một mục tiêu \emph{khác}. Thứ hai, \emph{nhánh xoay và
+nhánh contrastive bổ trợ nhau}: thêm nhánh xoay lên trên một nhánh contrastive đã có vẫn cải
+thiện thêm, trong khi nhánh xoay chạy một mình (\cfg{E2-L}) thì không khác baseline. Hai nhận
+xét này chỉ là bằng chứng thăm dò do $n=3$, nhưng chúng nhất quán về dấu ở mọi lần lặp nên đáng
+được kiểm chứng lại với số lần lặp lớn hơn.
 
 \subsection{Tiêu chí hoàn thành đã đối chiếu}
 \label{sec:concl-criteria}
