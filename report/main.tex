@@ -131,7 +131,12 @@
 \lstset{style=m8style}
 
 % ---------- Lệnh dùng chung ----------
-\newcommand{\cfg}[1]{\textsc{#1}}
+% Tên cấu hình (E1, E2-L, ...). KHÔNG dùng \textsc: cả Liberation Serif (bản Linux) lẫn
+% Times New Roman (bản Windows) đều KHÔNG có mặt chữ small-caps, nên \textsc rơi vào shape
+% `sc' không tồn tại, LaTeX phải thay bằng mặt chữ khác và cảnh báo
+% "Font shape TU/.../m/sc undefined". Dùng sans đậm để tên cấu hình vẫn nổi bật trong thân
+% bài serif mà không phụ thuộc tính năng tuỳ chọn của font.
+\newcommand{\cfg}[1]{\textsf{\textbf{#1}}}
 \newcommand{\DL}{D_{\mathrm{L}}}
 \newcommand{\DU}{D_{\mathrm{U}}}
 \newcommand{\Dtrain}{D_{\mathrm{train}}}

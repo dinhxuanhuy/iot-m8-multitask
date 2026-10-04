@@ -16,7 +16,7 @@ ngân sách nhãn bị giới hạn (10 %, 20 %, 50 %) hay không?
 > luyện/suy luận, phân tích lỗi và giới hạn.
 >
 > **Mã nguồn LaTeX:** [`report/main.tex`](report/main.tex) (Windows · Times New Roman) ·
-> [`report/main-linux.tex`](report/main-linux.tex) (Linux · STIX Two Text + font đi kèm).
+> [`report/main-linux.tex`](report/main-linux.tex) (Linux · Liberation + font đi kèm).
 > `report/main.pdf` hiện là bản build từ `main-linux.tex`.
 
 ### Kết quả chính (Macro-F1 trên 10.000 ảnh test, mức 10 % nhãn, trung bình 3 lần lặp)
@@ -45,7 +45,7 @@ phần mở rộng tùy chọn (mục 3.3 đề cương) và được triển kh
 | Báo cáo kỹ thuật (PDF) | [`report/main.pdf`](report/main.pdf) |
 
 > **Về tệp `report/main.pdf`.** Tệp này là bản build **từ `main-linux.tex`** (XeLaTeX + font
-> STIX Two Text đi kèm trong `report/assets/fonts/`), vì môi trường soạn báo cáo là Linux.
+> Liberation đi kèm trong `report/assets/fonts/`), vì môi trường soạn báo cáo là Linux.
 > Nội dung giống hệt `main.tex`; chỉ khác bộ font. Trên Windows, chạy lại
 > `cd report && tectonic -X compile main.tex` để có bản dùng Times New Roman như thiết kế gốc.
 > Bản build đã kiểm tra đầy đủ nằm ở `report-build/BaoCao_M8_DinhXuanHuy_23110102.pdf`.
@@ -162,7 +162,7 @@ chừng và chạy lại — những lượt đã xong sẽ được bỏ qua.
 
 `report/main.tex` yêu cầu **Times New Roman / Segoe UI / Consolas / Cambria Math** — đều là
 font Windows. Trên Linux, dùng `report/main-linux.tex`: cùng nội dung, chỉ đổi bộ font sang
-**STIX Two Text + STIX Two Math + Carlito + Liberation Mono**.
+**Liberation Serif + Liberation Sans + Liberation Mono + STIX Two Math**.
 
 ```bash
 cd report
@@ -176,7 +176,8 @@ thì build báo lỗi `The font "STIXTwoText-Regular" cannot be found`.
 > ⚠️ **Phải `cd report` trước khi biên dịch.** `Path=` trong `main-linux.tex` là đường dẫn
 > tương đối (`assets/fonts/...`), nên thư mục làm việc phải là `report/`.
 
-Vì sao chọn STIX Two Text: đây là thiết kế **họ Times**, bám sát quy định trình bày học thuật
+Vì sao chọn Liberation Serif: đây là bản **tương thích metric của Times New Roman**, bám sát quy
+định trình bày học thuật VÀ render dấu tiếng Việt tốt hơn STIX Two Text (xem mục 8)
 Việt Nam (Times New Roman 13). Đã đối chiếu bảng `cmap` của từng file: đủ **91/91 ký tự có
 dấu** dùng trong báo cáo ở cả 4 mặt chữ. Xem mục 8 để biết các font **không** dùng được.
 
@@ -273,6 +274,17 @@ huấn luyện khối chính 8,26 giờ; mỗi lượt mở rộng ~25 phút tr�
 * **Một số font thiếu hẳn ký tự tiếng Việt.** `Caladea` thiếu 59, `Nimbus Roman` và `C059`
   thiếu 62 trong số 91 ký tự có dấu mà báo cáo dùng. Kiểm tra bằng cách đọc bảng `cmap` của
   file font, đối chiếu với danh sách ký tự trích từ `report/**/*.tex`.
+* **Có đủ glyph CHƯA chắc đã render dấu đúng — phải kiểm bằng mắt.** Cả `Carlito` lẫn
+  `STIX Two Text` đều **có đủ** 93/93 ký tự tiếng Việt trong `cmap`, nhưng vẫn render sai:
+  dấu nặng (dấu chấm dưới) của `ộ ợ ự ậ ệ` được đặt **quá thấp và tách rời** khỏi con chữ, còn
+  dấu chồng hai tầng ở `Ờ` thì chồng lên nhau. `Liberation Serif`/`Liberation Sans` đặt các dấu
+  này bám sát chữ. Cách kiểm: `pdftoppm -r 600` rồi soi vùng chữ có dấu, **hoặc** render cùng
+  một câu bằng `PIL.ImageFont` cho từng font rồi đặt cạnh nhau. Đừng tin `cmap` — hãy nhìn.
+* **`\textsc` cần mặt chữ small-caps mà font thường KHÔNG có.** Cả `Liberation Serif` (bản Linux)
+  lẫn `Times New Roman` (bản Windows) đều không có `smcp`, nên `\textsc{E1}` rơi vào shape
+  `TU/LiberationSerif(0)/m/sc` không tồn tại: LaTeX thay bằng mặt chữ khác và cảnh báo
+  `Font shape ... undefined`. Đã đổi `\cfg` sang `\textsf{\textbf{...}}` ở **cả hai** `main.tex`
+  và `main-linux.tex`. (`STIX Two Text` thì *có* `smcp`, nên lỗi này chỉ lộ ra sau khi đổi font.)
 * **`\input` một file chỉ có comment vẫn tính là `\input`.** `generated/tab_extension_results.tex`
   và `tab_extension_cost.tex` chỉ chứa comment, nên `\label` bên trong không tồn tại và
   `\ref` tới chúng in ra `??` trong PDF.
