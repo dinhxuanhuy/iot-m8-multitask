@@ -39,6 +39,20 @@ kết quả vào \code{results/self\_test.json}. Bảng dưới đây tóm tắt
 \subsection{Gói mã nguồn bàn giao}
 \label{sec:appendix-repro}
 
+\paragraph{Kho mã nguồn công khai.}
+Toàn bộ mã nguồn của báo cáo này nằm ở một kho Git công khai:
+
+\begin{center}
+\url{\RepoURL}
+\end{center}
+
+\noindent Kho chứa: thư viện \code{src/m8/}, toàn bộ \code{scripts/} (chuẩn bị dữ liệu, huấn
+luyện, đánh giá, benchmark, sinh bảng và hình), hai notebook, kết quả thô (\code{results/}), chỉ
+mục split đã đóng băng (\code{results/split\_indices.json}), dự đoán test theo chỉ mục
+(\code{results/test\_predictions/*.npz}) và hai checkpoint đã huấn luyện
+(\code{results/checkpoints\_ext/}). Bản PDF của báo cáo cũng nằm trong kho tại
+\code{report/main.pdf}.
+
 \paragraph{Cấu trúc thư mục.}
 \begin{lstlisting}[language=bash,caption={Cấu trúc gói tái lập.},label={lst:tree}]
 D:\IOT

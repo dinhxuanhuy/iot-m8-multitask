@@ -81,3 +81,7 @@ desktop.ini
 !results/checkpoints_ext/E3_L10_s42.pt
 !results/checkpoints_ext/E4_L10_s42.pt
 !results/checkpoints_ext/*.json
+
+# Công cụ tải về để dựng báo cáo (nhị phân lớn, không thuộc gói nộp)
+tools/pandoc.tar.gz
+tools/pandoc-3.5/
